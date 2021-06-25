@@ -1,0 +1,294 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Complete Backend for Compliment API
+Transform:
+- AWS::Serverless-2016-10-31
+
+# Metadata:
+
+Parameters:
+  DBUsername:
+    Default: user
+    Description: master username for the RDS
+    Type: String
+    NoEcho: true
+  DBPassword:
+    Default: password
+    Description: master password for the RDS
+    Type: String
+    NoEcho: true
+  DBPort:
+    Default: 5432
+    Description: port used for RDS instance
+    Type: Number
+    ConstraintDescription: "[0-9]+"
+    MinValue: 1
+    MaxValue: 55000
+    NoEcho: true
+
+Mappings:
+  AvailabilityZones:
+    us-east-1:
+      a: us-east-1a
+      b: us-east-1b
+      c: us-east-1c
+  # LambdaEnv:
+  #   dbConfig:
+  #     "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
+  #     "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
+  #     "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
+  #     "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
+  #     "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port'
+# Conditions:
+
+Resources:
+  # BEGIN: Networking
+  complimentVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: compliment
+          Value: vpc
+  sub1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ AvailabilityZones, us-east-1, a ]
+      VpcId: !Ref complimentVpc
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: compliment
+          Value: subnet-1
+  sub2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ AvailabilityZones, us-east-1, b ]
+      VpcId: !Ref complimentVpc
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: compliment
+          Value: subnet-2
+  sub3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ AvailabilityZones, us-east-1, c ]
+      VpcId: !Ref complimentVpc
+      CidrBlock: 10.0.3.0/24
+      Tags:
+        - Key: compliment
+          Value: subnet-3
+  # END: Networking
+  # BEGIN: Security
+  publicGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-public
+      GroupDescription: public SG for compliment components
+      VpcId: !Ref complimentVpc
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: -1
+          ToPort: -1
+          IpProtocol: tcp
+      Tags:
+        - Key: compliment
+          Value: public-sg
+  privGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-private
+      GroupDescription: private subnet for compliment services
+      VpcId: !Ref complimentVpc
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref publicGroup
+          FromPort: -1
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: -1
+          IpProtocol: tcp
+      Tags:
+        - Key: compliment
+          Value: private-sg
+  secretDBMasterCreds:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Store RDS username information into secrets manager
+      SecretString: !Sub 
+        - '{"username": "${username}", "password": "${password}"}'
+        - { username: !Ref DBUsername, password: !Ref DBPassword}
+      Name: secretDBMasterUsername
+      Tags:
+        - Key: compliment
+          Value: secretDBMasterCredentials
+  secretDBEndpoint:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Store RDS Endpoint information into secretes manager
+      SecretString: !Sub 
+        - '{"address": "${address}", "port":"${port}", "database":"${database}"}'
+        - {address: generate, port: 5432, database: postgres}
+      Name: secret-rds-endpoint
+      Tags:
+        - Key: compliment
+          Value: secret-rds-endpoint
+  secretDBAppInfo:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: database info to use for queries
+      SecretString: !Sub 
+        - '{"username":"${username}","password":"${password}", "schema":"${schema}"}'
+        - {username: app_user, password: password, schema: compliments}
+      Name: secretDBSchema
+      Tags:
+        - Key: compliment
+          Value: secretDBConnectionInformation
+  # END: Security
+  # BEGIN: Persistence
+  complimentRDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: "20"
+      DBInstanceClass: db.t2.micro
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      AvailabilityZone: !GetAtt sub2.AvailabilityZone
+      BackupRetentionPeriod: 7
+      DBInstanceIdentifier: complimentRDS
+      DBName: postgres
+      DBParameterGroupName: default.postgres12
+      DBSecurityGroups:
+        - !Ref privGroup
+      DBSubnetGroupName: !Ref sub2
+      Engine: postgres
+      EngineVersion: 12.5-R1
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      MultiAZ: false
+      Port: !Ref DBPort
+      PubliclyAccessible: true
+      StorageEncrypted: false
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !Ref privGroup
+      Tags:
+        - Key: compliment
+          Value: database
+  complimentSauron:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: username
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 4
+        WriteCapacityUnits: 4
+      TableName: sauron
+      Tags:
+        - Key: compliment
+          Value: user-tracking-db
+  # END: Persistence
+  # BEGIN: Authentication
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 2
+          - Name: verified_phone_number
+            Priority: 1
+      AutoVerifiedAttributes:
+        - email
+        - phone_number
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 6
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: gender
+          AttributeDataType: String
+          Mutable: true
+          DeveloperOnlyAttribute: false
+          Required: false
+        - Name: race
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: birthdate
+          AttributeDataType: DateTime
+          Required: false
+          Mutable: true
+        - Name: given_name
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: family_name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: false 
+        - Name: locale
+          AttributeDataType: String
+          Required: false
+          Mutable: true        
+      # Add SMS Verification
+
+  # END: Authentication
+  # BEGIN: Functions
+  layer1:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: src/layer/.
+      CompatibleRuntimes:
+        - nodejs12.x
+      LayerName: init-layer
+      Description: Initial layer for lamdba functions in backend
+  CognitoInsertTrigger:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda to use a trigger for Cognito sign up
+      FunctionName: createUserCognitoTrigger
+      Handler: src/handlers/db/triggers/create-user-cognito-trigger.handler
+      MemorySize: 128
+      # Role: It does not need a role since it is not accessing anything other than over http
+      Runtime: nodejs12.x
+      Timeout: 5
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref publicGroup
+        SubnetIds:
+          - !Ref sub1
+      Environment:
+        Variables: 
+          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
+          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
+          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
+          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
+          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
+      # Tags:
+      #   - Key: compliment
+      #     Value: lamdba-cognito-trigger-create
+
+Outputs:
+  RDSEndpoint:
+    Description: endpoint to connect to rds from lamdba, for debugging purposes
+    Value: !GetAtt complimentRDS.Endpoint.Address

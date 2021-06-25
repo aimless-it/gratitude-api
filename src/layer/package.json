@@ -1,0 +1,11 @@
+{
+    "name": "compliment-layer",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "aws-xray-sdk-core": "^3.3.3",
+        "aws-xray-sdk-postgres": "^3.3.3",
+        "pg": "^8.6.0"
+    },
+    "scripts": {}
+}
