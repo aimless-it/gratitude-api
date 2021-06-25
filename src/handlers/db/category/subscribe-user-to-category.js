@@ -29,6 +29,6 @@ exports.handler = async (event, context) => {
     const arr = [];
     for (const row of res.rows) {
         arr.push(...row)
-    };
+    }
     return arr;
 }

@@ -21,6 +21,13 @@ expected body from cognito:
         response: {}
     }
 */
+/**
+ * A trigger for when a new user signs up with cognito, it will 
+ *      insert the user's information into the database.
+ * @param event 
+ * @param context 
+ * @returns The event for cognito to continue auth flow.
+ */
 exports.handler = async (event, context) => {
     await client.connect();
     const body = JSON.parse(event.body);
@@ -43,9 +50,9 @@ exports.handler = async (event, context) => {
     }
 
     try{
-        const begin = await client.query('BEGIN')
-        const res = await client.query(query);
-        const end = await client.query('COMMIT');
+        await client.query('BEGIN')
+        await client.query(query);
+        await client.query('COMMIT');
     } catch(err) {
         console.error(`error saving to db on ${Date.now()}: ${err}`);
         
