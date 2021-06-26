@@ -46,15 +46,6 @@ Mappings:
       a: us-east-1a
       b: us-east-1b
       c: us-east-1c
-  # LambdaEnv:
-  #   dbConfig:
-  #     "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-  #     "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-  #     "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-  #     "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-  #     "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port'
-# Conditions:
-
 Resources:
   # BEGIN: Networking
   complimentVpc:

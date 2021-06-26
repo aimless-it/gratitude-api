@@ -1,11 +1,7 @@
 /* 
 expected request:
-    uri: /
+    uri: /:username/:category
     method: DELETE/PUT/POST
-    body: {
-        username: String,
-        category: String
-    }
 */
 /**
  * Extracts the username and category out of the body
@@ -15,7 +11,7 @@ expected request:
  * @returns The body for the next lambda
  */
 exports.handler = async (event, context) => {
-    const {username, category} = event.body;
+    const {username, category} = event.pathParameters;
     return {
         query: {},
         meta: {},
