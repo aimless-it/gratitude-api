@@ -3,6 +3,21 @@ Description: Complete Backend for Compliment API
 Transform:
 - AWS::Serverless-2016-10-31
 
+Globals:
+  Function:
+    Runtime: nodejs14.x
+    Environment:
+      Variables:
+          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
+          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
+          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
+          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
+          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
+    VpcConfig:
+        SecurityGroupIds:
+          - !Ref publicGroup
+        SubnetIds:
+          - !Ref sub1
 # Metadata:
 
 Parameters:
@@ -251,7 +266,7 @@ Resources:
           Required: false
           Mutable: true     
       LambdaConfig:
-        PostConfirmation: !GetAtt CognitoInsertTrigger.Arn
+        PostConfirmation: !GetAtt cognitoInsertTrigger.Arn
       # Add SMS Verification
 
   # END: Authentication
@@ -261,238 +276,121 @@ Resources:
     Properties:
       ContentUri: src/layer/.
       CompatibleRuntimes:
-        - nodejs12.x
+        - nodejs14.x
       LayerName: init-layer
       Description: Initial layer for lamdba functions in backend
-  CognitoInsertTrigger:
+  cognitoInsertTrigger:
     Type: AWS::Serverless::Function
     Properties:
       Description: A lambda to use a trigger for Cognito sign up
       FunctionName: createUserCognitoTrigger
       Handler: src/handlers/db/triggers/create-user-cognito-trigger.handler
       MemorySize: 128
-      # Role: It does not need a role since it is not accessing anything other than over http
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
-      Environment:
-        Variables: 
-          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
       Tags:
-        - Key: compliment
-          Value: lambda-cognito-trigger-create
+        compliment: cognito trigger
   getCategoryFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda to get category subscriptions for a user
       FunctionName: getCategoryFunction
       Handler: src/handlers/db/category/get-categories-for-user.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
-      Environment:
-        Variables:
-          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
+      Layers:
+        - !Ref layer1
       Tags:
-        - Key: compliment
-          Value: get categories function
+        compliment: get categories function
   removeCategoryFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda to remove a category subscription for a user
       FunctionName: removeCategory
       Handler: src/remove-category-from-user-prefs.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
       Layers:
         - !Ref layer1
-      Environment:
-        Variables:
-          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
       Tags:
-        - Key: compliment
-          Value: remove category function
+        compliment: remove category function
     addCategoryFunction:
-      Type: AWS::Lambda::Function
+      Type: AWS::Serverless::Function
       Properties:
         Description: A lambda that will add a category subscription for a user
         FunctionName: addCategoryFunction
         Handler: src/handlers/db/category/subscribe-user-to-category.handler
         MemorySize: 128
-        Runtime: nodejs12.x
         Timeout: 5
-        VpcConfig:
-          SecurityGroupIds:
-            - !Ref publicGroup
-          SubnetIds:
-            - !Ref sub1
         Layers:
           - !Ref layer1
-        Environment:
-          Variables:
-            "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-            "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-            "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-            "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-            "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'        Tags:
-          - Key: compliment
-            Value: addCategoryFunction
+        Tags:
+          compliment: addCategoryFunction
   getRandomUserComplimentFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda to get a compliment, given a username
       FunctionName: getRandomUserComplimentFunction 
       Handler: src/handlers/db/compliments/get-compliment.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
       Layers:
         - !Ref layer1
-      Environment:
-        Variables:
-            "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-            "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-            "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-            "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-            "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
       Tags:
-        - Key: compliment
-          Value: get compliment function
+        compliment: get compliment function
   getRandomComplimentFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda to get a random compliment from the db given the correct params
       FunctionName: getRandomComplimentFunction
       Handler: src/handlers/db/compliment/get-compliment-by-category-personality.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
       Layers:
         - !Ref layer1
-      Environment:
-        Variables:
-          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
-     Tags:
-        - Key: compliment
-          Value: get random compliment by category and personality type function
+      Tags:
+        compliment: get random compliment by category and personality type function
   getUserFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda function to get a user's information
       FunctionName: getUserFunction
       Handler: src/handlers/db/user/get-user-by-username.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
       Layers:
         - !Ref layer1
-      Environment:
-        Variables:
-          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
-     Tags:
-        - Key: compliment
-          Value: get user by username function
+      Tags:
+        compliment: get user by username function
   personalityExtractorControllerFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda for extracting the personality type and category from the request body
       FunctionName: personalityExtractorControllerFunction
       Handler: src/handlers/controller/personality-extractor-controller.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
       Tags:
-        - Key: compliment
-          Value: controller-personality
+        compliment: controller-personality
   userCategoryExtractorControllerFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda for extracting the user and category from the request
       FunctionName: userCategoryExtractorControllerFunction
       Handler: src/handlers/controller/user-category-extractor-controller.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
       Tags:
-        - Key: compliment
-          Value: controller-user-category
+        compliment: controller-user-category
   usernameExtractorControllerFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: A lambda for extracting the username from the request path
       FunctionName: usernameExtractorControllerFunction
       Handler: src/handlers/controller/username-extractor-controller.handler
       MemorySize: 128
-      Runtime: nodejs12.x
       Timeout: 5
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref publicGroup
-        SubnetIds:
-          - !Ref sub1
       Tags:
-        - Key: compliment
-          Value: controller-username
+        compliment: controller-username
 Outputs:
   RDSEndpoint:
     Description: endpoint to connect to rds from lamdba, for debugging purposes
