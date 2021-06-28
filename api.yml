@@ -176,7 +176,7 @@ paths:
             application/json:
               schema:
                 type: string
-  /user/{username}/compliment:
+  /compliment/user/{username}:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
     get:
@@ -206,7 +206,7 @@ paths:
             application/json:
               schema:
                 type: string
-  /user/{username}/category:
+  /category/user/{username}:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
     get:
