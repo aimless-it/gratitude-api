@@ -158,6 +158,34 @@ Resources:
       Tags:
         - Key: compliment
           Value: secretDBConnectionInformation
+  workflowRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - !Sub 'states.${AWS::Region}.amazonaws.com'
+              Action: 'sts::AssumeRole'
+        Policies:
+          - PolicyName: lambda
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action: 'lamdba:InvokeFunction'
+                  Resource:
+                    - !GetAtt getUserFunction.Arn
+                    - !GetAtt removeCategoryFunction.Arn
+                    - !GetAtt addCategoryFunction.Arn
+                    - !GetAtt getRandomUserComplimentFunction.Arn
+                    - !GetAtt getRandomComplimentFunction.Arn
+                    - !GetAtt getCategoryFunction.Arn
+                    - !GetAtt personalityExtractorControllerFunction.Arn
+                    - !GetAtt usernameExtractorControllerFunction.Arn
+                    - !GetAtt userCategoryExtractorControllerFunction.Arn
   # END: Security
   # BEGIN: Persistence
   complimentRDS:
@@ -275,7 +303,8 @@ Resources:
     Properties:
       Description: A lambda to use a trigger for Cognito sign up
       FunctionName: createUserCognitoTrigger
-      Handler: src/handlers/db/triggers/create-user-cognito-trigger.handler
+      CodeUri: src/handlers/db/triggers/create-user-cognito-trigger.js
+      Handler: create-user-cognito-trigger.handler
       MemorySize: 128
       Timeout: 5
       Tags:
@@ -285,7 +314,8 @@ Resources:
     Properties:
       Description: A lambda to get category subscriptions for a user
       FunctionName: getCategoryFunction
-      Handler: src/handlers/db/category/get-categories-for-user.handler
+      CodeUri: src/handlers/db/category/get-categories-for-user.js
+      Handler: get-categories-for-user.handler
       MemorySize: 128
       Timeout: 5
       Layers:
@@ -297,31 +327,34 @@ Resources:
     Properties:
       Description: A lambda to remove a category subscription for a user
       FunctionName: removeCategory
-      Handler: src/remove-category-from-user-prefs.handler
+      CodeUri: src/handlers/db/category/remove-category-from-user-prefs.js
+      Handler: remove-category-from-user-prefs.handler
       MemorySize: 128
       Timeout: 5
       Layers:
         - !Ref layer1
       Tags:
         compliment: remove category function
-    addCategoryFunction:
-      Type: AWS::Serverless::Function
-      Properties:
-        Description: A lambda that will add a category subscription for a user
-        FunctionName: addCategoryFunction
-        Handler: src/handlers/db/category/subscribe-user-to-category.handler
-        MemorySize: 128
-        Timeout: 5
-        Layers:
-          - !Ref layer1
-        Tags:
-          compliment: addCategoryFunction
+  addCategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda that will add a category subscription for a user
+      FunctionName: addCategoryFunction
+      CodeUri: src/handlers/db/category/subscribe-user-to-category.js
+      Handler: subscribe-user-to-category.handler
+      MemorySize: 128
+      Timeout: 5
+      Layers:
+        - !Ref layer1
+      Tags:
+        compliment: addCategoryFunction
   getRandomUserComplimentFunction:
     Type: AWS::Serverless::Function
     Properties:
       Description: A lambda to get a compliment, given a username
       FunctionName: getRandomUserComplimentFunction 
-      Handler: src/handlers/db/compliments/get-compliment.handler
+      CodeUri: src/handlers/db/compliments/get-compliment.js
+      Handler: get-compliment.handler
       MemorySize: 128
       Timeout: 5
       Layers:
@@ -333,7 +366,8 @@ Resources:
     Properties:
       Description: A lambda to get a random compliment from the db given the correct params
       FunctionName: getRandomComplimentFunction
-      Handler: src/handlers/db/compliment/get-compliment-by-category-personality.handler
+      CodeUri: src/handlers/db/compliments/get-compliment-by-category-personality.js
+      Handler: get-compliment-by-category-personality.handler
       MemorySize: 128
       Timeout: 5
       Layers:
@@ -345,7 +379,8 @@ Resources:
     Properties:
       Description: A lambda function to get a user's information
       FunctionName: getUserFunction
-      Handler: src/handlers/db/user/get-user-by-username.handler
+      CodeUri: src/handlers/db/user/get-user-by-username.js
+      Handler: get-user-by-username.handler
       MemorySize: 128
       Timeout: 5
       Layers:
@@ -357,7 +392,8 @@ Resources:
     Properties:
       Description: A lambda for extracting the personality type and category from the request body
       FunctionName: personalityExtractorControllerFunction
-      Handler: src/handlers/controller/personality-extractor-controller.handler
+      CodeUri: src/handlers/controller/personality-extractor-controller.js
+      Handler: personality-extractor-controller.handler
       MemorySize: 128
       Timeout: 5
       Tags:
@@ -367,7 +403,8 @@ Resources:
     Properties:
       Description: A lambda for extracting the user and category from the request
       FunctionName: userCategoryExtractorControllerFunction
-      Handler: src/handlers/controller/user-category-extractor-controller.handler
+      CodeUri: src/handlers/controller/user-category-extractor-controller.js
+      Handler: user-category-extractor-controller.handler
       MemorySize: 128
       Timeout: 5
       Tags:
@@ -377,11 +414,164 @@ Resources:
     Properties:
       Description: A lambda for extracting the username from the request path
       FunctionName: usernameExtractorControllerFunction
-      Handler: src/handlers/controller/username-extractor-controller.handler
+      CodeUri: src/handlers/controller/username-extractor-controller.js
+      Handler: username-extractor-controller.handler
       MemorySize: 128
       Timeout: 5
       Tags:
         compliment: controller-username
+  # END: Functions
+  # BEGIN: Integration
+  apiGW:
+    Type: AWS::Serverless::Api
+    Properties:
+      DefinitionUri: api.yml
+      Description: Api Gateway for gratitude api
+      OpenApiVersion: 3.0.3
+      StageName: dev
+  getUserWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getUserInfoEvent:
+          Type: Api
+          Properties:
+            Path: /user/{username}
+            Method: get
+            RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: task
+            Resource: !GetAtt userCategoryExtractorControllerFunction.Arn
+            Next: service
+          service:
+            Type: task
+            Resource: !GetAtt getUserFunction.Arn
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: !GetAtt workflowRole.Arn
+  getComplimentByCategoryWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getComplimentEvent:
+          Type: Api
+          Properties:
+            Path: /compliment/{category}
+            Method: get
+            RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: task
+            Resource: !GetAtt personalityExtractorControllerFunction.Arn
+            Next: service
+          service:
+            Type: task
+            Resource: !GetAtt getRandomComplimentFunction.Arn
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: !GetAtt workflowRole.Arn
+  getComplimentByUsernameWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getComplimentEvent:
+          Type: Api
+          Properties:
+            Path: /compliment/user/{username}
+            Method: get
+            RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: task
+            Resource: !GetAtt usernameExtractorControllerFunction.Arn
+            Next: service
+          service:
+            Type: task
+            Resource: !GetAtt getRandomUserComplimentFunction.Arn
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: !GetAtt workflowRole.Arn
+  getCategoriesForUserWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getCategoriesEvent:
+          Type: Api
+          Properties:
+            Path: /category/user/{username}
+            Method: get
+            RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: task
+            Resource: !GetAtt usernameExtractorControllerFunction.Arn
+            Next: service
+          service:
+            Type: task
+            Resource: !GetAtt getCategoryFunction.Arn
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: !GetAtt workflowRole.Arn
+  postUserCategoryWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        postUserCategoryEvent:
+          Type: Api
+          Properties:
+            Path: /user/{username}/category/{category}
+            Method: post
+            RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: task
+            Resource: !GetAtt userCategoryExtractorControllerFunction.Arn
+            Next: service
+          service:
+            Type: task
+            Resource: !GetAtt addCategoryFunction.Arn
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: !GetAtt workflowRole.Arn
+  deleteUserCategoryWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        deleteUserCategoryEvent:
+          Type: Api
+          Properties:
+            Path: /user/{username}/category/{category}
+            Method: delete
+            RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: task
+            Resource: !GetAtt userCategoryExtractorControllerFunction.Arn
+            Next: service
+          service:
+            Type: task
+            Resource: !GetAtt removeCategoryFunction.Arn
+            End: true
+      Tracing: 
+        Enabled: true
+      Role: !GetAtt workflowRole.Arn
 Outputs:
   RDSEndpoint:
     Description: endpoint to connect to rds from lamdba, for debugging purposes
