@@ -18,3 +18,13 @@
 [] Create tests for lambdas
 [] fully configure xray
 [] Route53 for domain and https
+
+## Environment configuration
+- Need a key pair for bastion host connection named gratitude-bastion
+
+> Even if you don't plan to connect to this instance, it is still needed for the instance to be created.
+
+- aws cli needs to be configured. Install aws cli and run `aws configure` to begin configuration.
+
+> Note: You need an IAM user setup for programmatic access with admin policy attached.
+

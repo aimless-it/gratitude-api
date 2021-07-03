@@ -8,11 +8,16 @@ Globals:
     Runtime: nodejs14.x
     Environment:
       Variables:
-          "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-          "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-          "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-          "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-          "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
+          # "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
+          # "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
+          # "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
+          # "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
+          # "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
+          "PGUSER": "app_user"
+          "PGHOST": !GetAtt complimentRDS.Endpoint.Address
+          "PGPORT": !GetAtt complimentRDS.Endpoint.Address
+          "PGPASSWORD": "password"
+          "PGDATABASE": "compliments"
     VpcConfig:
         SecurityGroupIds:
           - !Ref publicGroup
@@ -22,7 +27,7 @@ Globals:
 
 Parameters:
   DBUsername:
-    Default: user
+    Default: db_user
     Description: master username for the RDS
     Type: String
     NoEcho: true
@@ -48,11 +53,34 @@ Mappings:
       c: us-east-1c
 Resources:
   # BEGIN: Networking
+  complimentGateway:
+    Type: AWS::EC2::InternetGateway
+  gatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref complimentVpc
+      InternetGatewayId: !Ref complimentGateway
+  complimentRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref complimentVpc
+  # RouteTableGatewayAssociation:
+  #   Type: AWS::EC2::GatewayRouteTableAssociation
+  #   Properties:
+  #     GatewayId: !Ref complimentGateway
+  #     RouteTableId: !Ref complimentRouteTable
+  internetRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref complimentRouteTable
+      GatewayId: !Ref complimentGateway
   complimentVpc:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
       EnableDnsSupport: true
+      EnableDnsHostnames: true
       Tags:
         - Key: compliment
           Value: vpc
@@ -62,6 +90,7 @@ Resources:
       AvailabilityZone: !FindInMap [ AvailabilityZones, us-east-1, a ]
       VpcId: !Ref complimentVpc
       CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: compliment
           Value: subnet-1
@@ -71,6 +100,7 @@ Resources:
       AvailabilityZone: !FindInMap [ AvailabilityZones, us-east-1, b ]
       VpcId: !Ref complimentVpc
       CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: compliment
           Value: subnet-2
@@ -80,9 +110,19 @@ Resources:
       AvailabilityZone: !FindInMap [ AvailabilityZones, us-east-1, c ]
       VpcId: !Ref complimentVpc
       CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: compliment
           Value: subnet-3
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: A group of subnets for the rds to reside in
+      DBSubnetGroupName: Sub-RDS
+      SubnetIds:
+        - !Ref sub1
+        - !Ref sub2
+        - !Ref sub3
   # END: Networking
   # BEGIN: Security
   publicGroup:
@@ -102,12 +142,31 @@ Resources:
           IpProtocol: tcp
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
-          FromPort: -1
-          ToPort: -1
+          FromPort: 0
+          ToPort: 55000
           IpProtocol: tcp
       Tags:
         - Key: compliment
           Value: public-sg
+  bastionGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-bastion
+      GroupDescription: public SG for ssh into bastion host
+      VpcId: !Ref complimentVpc
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 0
+          ToPort: 55000
+          IpProtocol: tcp
+      Tags:
+        - Key: compliment
+          Value: Bastion-SG
   privGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -116,15 +175,37 @@ Resources:
       VpcId: !Ref complimentVpc
       SecurityGroupIngress:
         - SourceSecurityGroupId: !Ref publicGroup
-          FromPort: -1
+          FromPort: 0
+          ToPort: 55000
           IpProtocol: tcp
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
-          FromPort: -1
+          FromPort: 0
+          ToPort: 55000
           IpProtocol: tcp
       Tags:
         - Key: compliment
           Value: private-sg
+  dbGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-rdsSG
+      GroupDescription: Security Group for rds instance
+      VpcId: !Ref complimentVpc
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref publicGroup
+          FromPort: 5432
+          ToPort: 5432
+          IpProtocol: tcp
+        - SourceSecurityGroupId: !Ref bastionGroup
+          FromPort: 5432
+          ToPort: 5432
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 55000
+          CidrIp: 0.0.0.0/0
   secretDBMasterCreds:
     Type: AWS::SecretsManager::Secret
     Properties:
@@ -169,23 +250,23 @@ Resources:
             Principal:
               Service:
                 - !Sub 'states.${AWS::Region}.amazonaws.com'
-              Action: 'sts::AssumeRole'
-        Policies:
-          - PolicyName: lambda
-            PolicyDocument:
-              Statement:
-                - Effect: Allow
-                  Action: 'lamdba:InvokeFunction'
-                  Resource:
-                    - !GetAtt getUserFunction.Arn
-                    - !GetAtt removeCategoryFunction.Arn
-                    - !GetAtt addCategoryFunction.Arn
-                    - !GetAtt getRandomUserComplimentFunction.Arn
-                    - !GetAtt getRandomComplimentFunction.Arn
-                    - !GetAtt getCategoryFunction.Arn
-                    - !GetAtt personalityExtractorControllerFunction.Arn
-                    - !GetAtt usernameExtractorControllerFunction.Arn
-                    - !GetAtt userCategoryExtractorControllerFunction.Arn
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: lambda
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: 'lamdba:InvokeFunction'
+                Resource:
+                  - !GetAtt getUserFunction.Arn
+                  - !GetAtt removeCategoryFunction.Arn
+                  - !GetAtt addCategoryFunction.Arn
+                  - !GetAtt getRandomUserComplimentFunction.Arn
+                  - !GetAtt getRandomComplimentFunction.Arn
+                  - !GetAtt getCategoryFunction.Arn
+                  - !GetAtt personalityExtractorControllerFunction.Arn
+                  - !GetAtt usernameExtractorControllerFunction.Arn
+                  - !GetAtt userCategoryExtractorControllerFunction.Arn
   # END: Security
   # BEGIN: Persistence
   complimentRDS:
@@ -200,11 +281,9 @@ Resources:
       DBInstanceIdentifier: complimentRDS
       DBName: postgres
       DBParameterGroupName: default.postgres12
-      DBSecurityGroups:
-        - !Ref privGroup
-      DBSubnetGroupName: !Ref sub2
+      DBSubnetGroupName: !Ref RDSSubnetGroup
       Engine: postgres
-      EngineVersion: 12.5-R1
+      EngineVersion: "12.5"
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       MultiAZ: false
@@ -213,7 +292,7 @@ Resources:
       StorageEncrypted: false
       StorageType: gp2
       VPCSecurityGroups:
-        - !Ref privGroup
+        - !Ref dbGroup
       Tags:
         - Key: compliment
           Value: database
@@ -238,15 +317,15 @@ Resources:
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      AccountRecoverySetting:
-        RecoveryMechanisms:
-          - Name: verified_email
-            Priority: 2
-          - Name: verified_phone_number
-            Priority: 1
-      AutoVerifiedAttributes:
-        - email
-        - phone_number
+      # AccountRecoverySetting:
+      #   RecoveryMechanisms:
+      #     - Name: verified_email
+      #       Priority: 2
+      #     - Name: verified_phone_number
+      #       Priority: 1
+      # AutoVerifiedAttributes:
+      #   - email
+      #   - phone_number
       Policies:
         PasswordPolicy:
           MinimumLength: 6
@@ -265,7 +344,7 @@ Resources:
           Mutable: true
           Required: false
         - Name: birthdate
-          AttributeDataType: DateTime
+          AttributeDataType: String
           Required: false
           Mutable: true
         - Name: given_name
@@ -287,6 +366,8 @@ Resources:
       LambdaConfig:
         PostConfirmation: !GetAtt cognitoInsertTrigger.Arn
       # Add SMS Verification
+      # SmsConfiguration:
+        
 
   # END: Authentication
   # BEGIN: Functions
@@ -422,13 +503,13 @@ Resources:
         compliment: controller-username
   # END: Functions
   # BEGIN: Integration
-  apiGW:
-    Type: AWS::Serverless::Api
-    Properties:
-      DefinitionUri: api.yml
-      Description: Api Gateway for gratitude api
-      OpenApiVersion: 3.0.3
-      StageName: dev
+  # apiGW:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     DefinitionUri: api.yml
+  #     Description: Api Gateway for gratitude api
+  #     OpenApiVersion: 3.0.3
+  #     StageName: dev
   getUserWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:
@@ -438,15 +519,15 @@ Resources:
           Properties:
             Path: /user/{username}
             Method: get
-            RestApiId: !Ref apiGW
+            # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
-            Type: task
+            Type: Task
             Resource: !GetAtt userCategoryExtractorControllerFunction.Arn
             Next: service
           service:
-            Type: task
+            Type: Task
             Resource: !GetAtt getUserFunction.Arn
             End: true
         StartAt: controller
@@ -462,15 +543,15 @@ Resources:
           Properties:
             Path: /compliment/{category}
             Method: get
-            RestApiId: !Ref apiGW
+            # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
-            Type: task
+            Type: Task
             Resource: !GetAtt personalityExtractorControllerFunction.Arn
             Next: service
           service:
-            Type: task
+            Type: Task
             Resource: !GetAtt getRandomComplimentFunction.Arn
             End: true
         StartAt: controller
@@ -486,15 +567,15 @@ Resources:
           Properties:
             Path: /compliment/user/{username}
             Method: get
-            RestApiId: !Ref apiGW
+            # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
-            Type: task
+            Type: Task
             Resource: !GetAtt usernameExtractorControllerFunction.Arn
             Next: service
           service:
-            Type: task
+            Type: Task
             Resource: !GetAtt getRandomUserComplimentFunction.Arn
             End: true
         StartAt: controller
@@ -510,15 +591,15 @@ Resources:
           Properties:
             Path: /category/user/{username}
             Method: get
-            RestApiId: !Ref apiGW
+            # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
-            Type: task
+            Type: Task
             Resource: !GetAtt usernameExtractorControllerFunction.Arn
             Next: service
           service:
-            Type: task
+            Type: Task
             Resource: !GetAtt getCategoryFunction.Arn
             End: true
         StartAt: controller
@@ -534,15 +615,15 @@ Resources:
           Properties:
             Path: /user/{username}/category/{category}
             Method: post
-            RestApiId: !Ref apiGW
+            # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
-            Type: task
+            Type: Task
             Resource: !GetAtt userCategoryExtractorControllerFunction.Arn
             Next: service
           service:
-            Type: task
+            Type: Task
             Resource: !GetAtt addCategoryFunction.Arn
             End: true
         StartAt: controller
@@ -558,21 +639,40 @@ Resources:
           Properties:
             Path: /user/{username}/category/{category}
             Method: delete
-            RestApiId: !Ref apiGW
+            # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
-            Type: task
+            Type: Task
             Resource: !GetAtt userCategoryExtractorControllerFunction.Arn
             Next: service
           service:
-            Type: task
+            Type: Task
             Resource: !GetAtt removeCategoryFunction.Arn
             End: true
+        StartAt: controller
       Tracing: 
         Enabled: true
       Role: !GetAtt workflowRole.Arn
+  bastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0ab4d1e9cf9a1215a
+      InstanceType: t2.micro
+      KeyName: bastion
+      NetworkInterfaces:
+        - DeviceIndex: "0"
+          DeleteOnTermination: true
+          AssociatePublicIpAddress: true
+          GroupSet: 
+            - !Ref bastionGroup
+          SubnetId: !Ref sub1
+      UserData: !Base64 sudo yum update -y\nsudo yum install -y postgresql\n
+      
 Outputs:
   RDSEndpoint:
     Description: endpoint to connect to rds from lamdba, for debugging purposes
     Value: !GetAtt complimentRDS.Endpoint.Address
+  bastionIp:
+    Description: The ip address of the ec2 instance
+    Value: !GetAtt bastion.PublicIp
