@@ -12,6 +12,7 @@
 - [X] Create userpool api key
 - [ ] Finish configuring app user pool
 - [ ] Connect cognito to api for auth
+- [ ] Create RDS Lambda proxy for functions to interact with db
 
 ## TODO: future
 - [ ] Create buildspec.yml for ci/cd

@@ -114,6 +114,21 @@ Resources:
       Tags:
         - Key: compliment
           Value: subnet-3
+  sub1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref sub1
+      RouteTableId: !Ref complimentRouteTable
+  sub2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref sub2
+      RouteTableId: !Ref complimentRouteTable
+  sub3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref sub3
+      RouteTableId: !Ref complimentRouteTable
   RDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
