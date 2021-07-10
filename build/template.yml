@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Complete Backend for Compliment API
+Transform:
+- AWS::Serverless-2016-10-31
+Parameters:
+  DBUsername:
+    Default: db_user
+    Description: master username for the RDS
+    Type: String
+    NoEcho: true
+  DBPassword:
+    Default: password
+    Description: master password for the RDS
+    Type: String
+    NoEcho: true
+  ENV:
+    Default: dev
+    Description: The stage name of the environment
+    Type: String
+Mappings:
+  AvailabilityZones:
+    us-east-1:
+      a: us-east-1a
+      b: us-east-1b
+      c: us-east-1c
+Resources:
+  NetworkingStack:
+    Type: AWS::Serverless::Application
+    DeletionPolicy: Delete
+    Properties:
+      Location: https://s3.amazonaws.com/random/sam//600dade21555bdb7f1a9af7c128d374b.template
+  SecurityStack:
+    Type: AWS::Serverless::Application
+    DeletionPolicy: Delete
+    Properties:
+      Location: https://s3.amazonaws.com/random/sam//ad4d7e275f92a53398b87b129553c4f3.template
+      Parameters:
+        VPCId:
+          Fn::GetAtt:
+          - NetworkingStack
+          - Outputs.VPCId
+        ENV:
+          Ref: ENV
+  PersistenceStack:
+    Type: AWS::Serverless::Application
+    DependsOn: SecurityStack
+    DeletionPolicy: Delete
+    Properties:
+      Location: https://s3.amazonaws.com/random/sam//b96e470165ecafe6a11d4ecd3352a9d5.template
+      Parameters:
+        ENV:
+          Ref: ENV
+        dbMasterUsername:
+          Ref: DBUsername
+        dbMasterPassword:
+          Ref: DBPassword
+        az:
+          Fn::FindInMap:
+          - AvailabilityZones
+          - Ref: AWS::Region
+          - a
+  FunctionStack:
+    Type: AWS::Serverless::Application
+    DependsOn: PersistenceStack
+    DeletionPolicy: Delete
+    Properties:
+      Location: https://s3.amazonaws.com/random/sam//619b2b3e74dc37c26632290c3a15ea4f.template
+      Parameters:
+        ENV:
+          Ref: ENV
+  IntegrationsStack:
+    Type: AWS::Serverless::Application
+    DependsOn: FunctionStack
+    DeletionPolicy: Delete
+    Properties:
+      Location: https://s3.amazonaws.com/random/sam//cbc23da1058097235a44ba86f5f81fdd.template
+      Parameters:
+        ENV:
+          Ref: ENV
+  AuthStack:
+    Type: AWS::Serverless::Application
+    DependsOn: FunctionStack
+    DeletionPolicy: Delete
+    Properties:
+      Location: https://s3.amazonaws.com/random/sam//f8952fcc26b9050865b362fea440db6e.template
+      Parameters:
+        ENV:
+          Ref: ENV
+  DebugStack:
+    Type: AWS::Serverless::Application
+    DependsOn: SecurityStack
+    DeletionPolicy: Delete
+    Properties:
+      Location: https://s3.amazonaws.com/random/sam//f92e43a93a6bc99acef5b9089b34ce43.template
+      Parameters:
+        ENV:
+          Ref: ENV
+Outputs:
+  RDSEndpoint:
+    Description: endpoint to connect to rds from lamdba, for debugging purposes
+    Value:
+      Fn::GetAtt:
+      - PersistenceStack
+      - Outputs.complimentRDSAddress
+  bastionIp:
+    Description: The ip address of the ec2 instance
+    Value:
+      Fn::GetAtt:
+      - DebugStack
+      - Outputs.bastionAddress

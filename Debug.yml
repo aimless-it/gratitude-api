@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  ENV:
+    Type: String
+    Description: The environment staging name
+    Default: env
+Resources:
+  bastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0ab4d1e9cf9a1215a
+      InstanceType: t2.micro
+      KeyName: bastion
+      NetworkInterfaces:
+        - DeviceIndex: "0"
+          DeleteOnTermination: true
+          AssociatePublicIpAddress: true
+          GroupSet: 
+            - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:bastionGroupId"
+          SubnetId: 
+            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
+      UserData: !Base64 |
+        #!/bin/bash
+        sudo yum update -y
+        sudo yum install postgresql
+  # END: Debugging
+Outputs:
+  bastionAddress:
+    Value: !GetAtt bastion.PublicIp

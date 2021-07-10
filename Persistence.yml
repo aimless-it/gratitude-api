@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  ENV:
+    Type: String
+    Description:  The stage name of the environment
+    Default: dev
+  dbMasterUsername:
+    Type: String
+    Description: The master username for the rds
+    Default: db_user
+  dbMasterPassword:
+    Type: String
+    Description: The master Password for the rds
+    Default: password
+    NoEcho: true
+  az:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: The availability zone for the rds to reside in for non multi az deployment
+  
+Resources:
+  # BEGIN: Persistence
+  complimentRDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: "20"
+      DBInstanceClass: db.t2.micro
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      AvailabilityZone: !Ref az
+      BackupRetentionPeriod: 7
+      DBInstanceIdentifier: !Sub "complimentRDS-${ENV}"
+      DBName: postgres
+      DBParameterGroupName: default.postgres12
+      DBSubnetGroupName: 
+        Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:RDSSubnetGroup"
+      Engine: postgres
+      EngineVersion: "12.5"
+      MasterUsername: !Ref dbMasterUsername
+      MasterUserPassword: !Ref dbMasterPassword
+      MultiAZ: false
+      Port: "5432"
+      PubliclyAccessible: true
+      StorageEncrypted: false
+      StorageType: gp2
+      VPCSecurityGroups:
+        - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:dbGroupId"
+      Tags:
+        - Key: compliment
+          Value: database
+  complimentSauron:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: username
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 4
+        WriteCapacityUnits: 4
+      TableName: sauron
+      Tags:
+        - Key: compliment
+          Value: user-tracking-db
+  # END: Persistence
+Outputs:
+  complimentRdsExport:
+    Value: !Ref complimentRDS
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:complimentRDS"
+  complimentRDSAddress:
+    Value: !GetAtt complimentRDS.Endpoint.Address
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:complimentRDS:Endpoint:Address"

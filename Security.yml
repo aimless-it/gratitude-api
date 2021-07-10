@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: The ID of the vpc the application resides in
+  ENV:
+    Type: String
+    Description: The environment stage name (dev, prod, test)
+  
+Resources:
+  # BEGIN: Security
+  publicGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-public
+      GroupDescription: public SG for compliment components
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 0
+          ToPort: 55000
+          IpProtocol: tcp
+      Tags:
+        - Key: compliment
+          Value: public-sg
+  bastionGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-bastion
+      GroupDescription: public SG for ssh into bastion host
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 0
+          ToPort: 55000
+          IpProtocol: tcp
+      Tags:
+        - Key: compliment
+          Value: Bastion-SG
+  privGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-private
+      GroupDescription: private subnet for compliment services
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref publicGroup
+          FromPort: 0
+          ToPort: 55000
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 0
+          ToPort: 55000
+          IpProtocol: tcp
+      Tags:
+        - Key: compliment
+          Value: private-sg
+  dbGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: compliment-rdsSG
+      GroupDescription: Security Group for rds instance
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref publicGroup
+          FromPort: 5432
+          ToPort: 5432
+          IpProtocol: tcp
+        - SourceSecurityGroupId: !Ref bastionGroup
+          FromPort: 5432
+          ToPort: 5432
+          IpProtocol: tcp
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 55000
+          CidrIp: 0.0.0.0/0
+  # secretDBMasterCreds:
+  #   Type: AWS::SecretsManager::Secret
+  #   Properties:
+  #     Description: Store RDS username information into secrets manager
+  #     SecretString: !Sub 
+  #       - '{"username": "${username}", "password": "${password}"}'
+  #       - { username: app_user, password: app_password}
+  #     Name: secretDBMasterCredentials`
+  #     Tags:
+  #       - Key: compliment
+  #         Value: secretDBMasterCredentials
+  # secretDBEndpoint:
+  #   Type: AWS::SecretsManager::Secret
+  #   Properties:
+  #     Description: Store RDS Endpoint information into secretes manager
+  #     SecretString: !Sub 
+  #       - '{"address": "${address}", "port":"${port}", "database":"${database}"}'
+  #       - {address: generate, port: 5432, database: postgres}
+  #     Name: secret-rds-endpoint
+  #     Tags:
+  #       - Key: compliment
+  #         Value: secret-rds-endpoint
+  # secretDBAppInfo:
+  #   Type: AWS::SecretsManager::Secret
+  #   Properties:
+  #     Description: database info to use for queries
+  #     SecretString: !Sub 
+  #       - '{"username":"${username}","password":"${password}", "schema":"${schema}"}'
+  #       - {username: app_user, password: app_password, schema: compliments}
+  #     Name: secretDBSchema
+  #     Tags:
+  #       - Key: compliment
+  #         Value: secretDBConnectionInformation
+  workflowRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - !Sub 'states.${AWS::Region}.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: lambda
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: 'lamdba:InvokeFunction'
+                Resource:
+                  - '*'
+                  # - !GetAtt getUserFunction.Arn
+                  # - !GetAtt removeCategoryFunction.Arn
+                  # - !GetAtt addCategoryFunction.Arn
+                  # - !GetAtt getRandomUserComplimentFunction.Arn
+                  # - !GetAtt getRandomComplimentFunction.Arn
+                  # - !GetAtt getCategoryFunction.Arn
+                  # - !GetAtt personalityExtractorControllerFunction.Arn
+                  # - !GetAtt usernameExtractorControllerFunction.Arn
+                  # - !GetAtt userCategoryExtractorControllerFunction.Arn
+  # END: Security
+
+Outputs:
+  publicGroupId:
+    Value: !Ref publicGroup
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:pubGroupId"
+  privateGroupId:
+    Value: !Ref privGroup
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:privGroupId"
+  bastionGroupId:
+    Value: !Ref bastionGroup
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:bastionGroupId"
+  dbGroupId:  
+    Value: !Ref dbGroup
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:dbGroupId"
+  WorkflowRoleId:
+    Value: !Ref workflowRole
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRoleId"
+  WorkflowRoleArn:
+    Value: !GetAtt workflowRole.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"

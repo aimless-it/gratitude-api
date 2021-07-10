@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+# BEGIN: Networking
+Parameters:
+  ENV:
+    Type: String
+    Description: The environment for the stack to reside in
+    Default: dev
+  
+Resources:
+  complimentGateway:
+    Type: AWS::EC2::InternetGateway
+  gatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref complimentVpc
+      InternetGatewayId: !Ref complimentGateway
+  complimentRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref complimentVpc
+  # RouteTableGatewayAssociation:
+  #   Type: AWS::EC2::GatewayRouteTableAssociation
+  #   Properties:
+  #     GatewayId: !Ref complimentGateway
+  #     RouteTableId: !Ref complimentRouteTable
+  internetRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref complimentRouteTable
+      GatewayId: !Ref complimentGateway
+  complimentVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: compliment
+          Value: vpc
+  sub1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref AWS::Region
+          - a
+      VpcId: !Ref complimentVpc
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: compliment
+          Value: subnet-1
+  sub2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref AWS::Region
+          - b
+      VpcId: !Ref complimentVpc
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: compliment
+          Value: subnet-2
+  sub3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref AWS::Region
+          - c
+      VpcId: !Ref complimentVpc
+      CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: compliment
+          Value: subnet-3
+  sub1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref sub1
+      RouteTableId: !Ref complimentRouteTable
+  sub2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref sub2
+      RouteTableId: !Ref complimentRouteTable
+  sub3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref sub3
+      RouteTableId: !Ref complimentRouteTable
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: A group of subnets for the rds to reside in
+      DBSubnetGroupName: !Sub "${AWS::Region}:${ENV}:Sub-RDS"
+      SubnetIds:
+        - !Ref sub1
+        - !Ref sub2
+        - !Ref sub3
+  # END: Networking
+Outputs:
+  VPCId:
+    Description: The VPC for all networking to reside in
+    Value: !Ref complimentVpc
+  Subnet1:
+    Value: !Ref sub1
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
+  Subnet2:
+    Value: !Ref sub2
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:subnet2"
+  Subnet3:
+    Value: !Ref sub3
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:subnet3"
+  DBSubnetGroup:
+    Value: !Ref RDSSubnetGroup
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:RDSSubnetGroup"

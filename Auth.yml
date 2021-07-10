@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+Parameters:
+  ENV:
+    Type: String
+    Description: The environment staging name
+    Default: env
+
+Resources:
+# BEGIN: Authentication
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      # AccountRecoverySetting:
+      #   RecoveryMechanisms:
+      #     - Name: verified_email
+      #       Priority: 2
+      #     - Name: verified_phone_number
+      #       Priority: 1
+      # AutoVerifiedAttributes:
+      #   - email
+      #   - phone_number
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 6
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: gender
+          AttributeDataType: String
+          Mutable: true
+          DeveloperOnlyAttribute: false
+          Required: false
+        - Name: race
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: birthdate
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: given_name
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: family_name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: false 
+        - Name: locale
+          AttributeDataType: String
+          Required: false
+          Mutable: true     
+      LambdaConfig:
+        PostConfirmation: 
+           Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
+      # Add SMS Verification
+      # SmsConfiguration:
+        
+
+  # END: Authentication

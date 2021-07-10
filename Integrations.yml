@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+Parameters:
+  ENV:
+    Type: String
+    Description: The environment staging name
+    Default: dev
+Resources:
+ # BEGIN: Integration
+  # apiGW:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     DefinitionUri: api.yml
+  #     Description: Api Gateway for gratitude api
+  #     OpenApiVersion: 3.0.3
+  #     StageName: dev
+  getUserWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getUserInfoEvent:
+          Type: Api
+          Properties:
+            Path: /user/{username}
+            Method: get
+            # RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
+            Next: service
+          service:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getUserFunction:Arn"
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: 
+        Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+  getComplimentByCategoryWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getComplimentEvent:
+          Type: Api
+          Properties:
+            Path: /compliment/{category}
+            Method: get
+            # RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:personalityExtractorControllerFunction:Arn"
+            Next: service
+          service:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomComplimentFunction:Arn"
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: 
+        Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+  getComplimentByUsernameWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getComplimentEvent:
+          Type: Api
+          Properties:
+            Path: /compliment/user/{username}
+            Method: get
+            # RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
+            Next: service
+          service:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomUserComplimentFunction:Arn"
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: 
+        Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+  getCategoriesForUserWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        getCategoriesEvent:
+          Type: Api
+          Properties:
+            Path: /category/user/{username}
+            Method: get
+            # RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
+            Next: service
+          service:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getCategoryFunction:Arn"
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: 
+        Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+  postUserCategoryWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        postUserCategoryEvent:
+          Type: Api
+          Properties:
+            Path: /user/{username}/category/{category}
+            Method: post
+            # RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
+            Next: service
+          service:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:addCategoryFunction:Arn"
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: 
+        Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+  deleteUserCategoryWorkflow:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Events:
+        deleteUserCategoryEvent:
+          Type: Api
+          Properties:
+            Path: /user/{username}/category/{category}
+            Method: delete
+            # RestApiId: !Ref apiGW
+      Definition:
+        States:
+          controller:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
+            Next: service
+          service:
+            Type: Task
+            Resource: 
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:removeCategoryFunction:Arn"
+            End: true
+        StartAt: controller
+      Tracing: 
+        Enabled: true
+      Role: 
+        Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"

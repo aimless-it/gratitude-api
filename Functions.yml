@@ -1,0 +1,213 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+Parameters:
+  ENV:
+    Type: String
+    Description: The current environment staging name
+    Default: env
+Globals:
+  Function:
+    Runtime: nodejs14.x
+    Environment:
+      Variables:
+          # "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
+          # "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
+          # "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
+          # "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
+          # "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
+          "PGUSER": "app_user"
+          "PGHOST": 
+            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:complimentRDS:Endpoint:Address"
+          "PGPORT": "5432"
+          "PGPASSWORD": "password"
+          "PGDATABASE": "compliments"
+    VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:pubGroupId"
+        SubnetIds:
+          - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
+Resources:
+    # BEGIN: Functions
+  layer1:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: src/layer/.
+      CompatibleRuntimes:
+        - nodejs14.x
+      LayerName: init-layer
+      Description: Initial layer for lamdba functions in backend
+  cognitoInsertTrigger:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda to use a trigger for Cognito sign up
+      FunctionName: createUserCognitoTrigger
+      CodeUri: src/handlers/db/triggers/create-user-cognito-trigger.js
+      Handler: create-user-cognito-trigger.handler
+      MemorySize: 128
+      Timeout: 5
+      Tags:
+        compliment: cognito trigger
+  getCategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda to get category subscriptions for a user
+      FunctionName: getCategoryFunction
+      CodeUri: src/handlers/db/category/get-categories-for-user.js
+      Handler: get-categories-for-user.handler
+      MemorySize: 128
+      Timeout: 5
+      Layers:
+        - !Ref layer1
+      Tags:
+        compliment: get categories function
+  removeCategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda to remove a category subscription for a user
+      FunctionName: removeCategory
+      CodeUri: src/handlers/db/category/remove-category-from-user-prefs.js
+      Handler: remove-category-from-user-prefs.handler
+      MemorySize: 128
+      Timeout: 5
+      Layers:
+        - !Ref layer1
+      Tags:
+        compliment: remove category function
+  addCategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda that will add a category subscription for a user
+      FunctionName: addCategoryFunction
+      CodeUri: src/handlers/db/category/subscribe-user-to-category.js
+      Handler: subscribe-user-to-category.handler
+      MemorySize: 128
+      Timeout: 5
+      Layers:
+        - !Ref layer1
+      Tags:
+        compliment: addCategoryFunction
+  getRandomUserComplimentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda to get a compliment, given a username
+      FunctionName: getRandomUserComplimentFunction 
+      CodeUri: src/handlers/db/compliments/get-compliment.js
+      Handler: get-compliment.handler
+      MemorySize: 128
+      Timeout: 5
+      Layers:
+        - !Ref layer1
+      Tags:
+        compliment: get compliment function
+  getRandomComplimentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda to get a random compliment from the db given the correct params
+      FunctionName: getRandomComplimentFunction
+      CodeUri: src/handlers/db/compliments/get-compliment-by-category-personality.js
+      Handler: get-compliment-by-category-personality.handler
+      MemorySize: 128
+      Timeout: 5
+      Layers:
+        - !Ref layer1
+      Tags:
+        compliment: get random compliment by category and personality type function
+  getUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda function to get a user's information
+      FunctionName: getUserFunction
+      CodeUri: src/handlers/db/user/get-user-by-username.js
+      Handler: get-user-by-username.handler
+      MemorySize: 128
+      Timeout: 5
+      Layers:
+        - !Ref layer1
+      Tags:
+        compliment: get user by username function
+  personalityExtractorControllerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda for extracting the personality type and category from the request body
+      FunctionName: personalityExtractorControllerFunction
+      CodeUri: src/handlers/controller/personality-extractor-controller.js
+      Handler: personality-extractor-controller.handler
+      MemorySize: 128
+      Timeout: 5
+      Tags:
+        compliment: controller-personality
+  userCategoryExtractorControllerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda for extracting the user and category from the request
+      FunctionName: userCategoryExtractorControllerFunction
+      CodeUri: src/handlers/controller/user-category-extractor-controller.js
+      Handler: user-category-extractor-controller.handler
+      MemorySize: 128
+      Timeout: 5
+      Tags:
+        compliment: controller-user-category
+  usernameExtractorControllerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda for extracting the username from the request path
+      FunctionName: usernameExtractorControllerFunction
+      CodeUri: src/handlers/controller/username-extractor-controller.js
+      Handler: username-extractor-controller.handler
+      MemorySize: 128
+      Timeout: 5
+      Tags:
+        compliment: controller-username
+  # END: Functions
+Outputs:
+  cognitoInsertTriggerArn:
+    Value: !GetAtt cognitoInsertTrigger.Arn
+    Description: The ARN of the cognitoInsertTrigger function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
+  getCategoryFunctionArn:
+    Value: !GetAtt getCategoryFunction.Arn
+    Description: The ARN of the getCategoryFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getCategoryFunction:Arn"
+  removeCategoryFunctionArn:
+    Value: !GetAtt removeCategoryFunction.Arn
+    Description: The ARN of the removeCategoryFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:removeCategoryFunction:Arn"
+  addCategoryFunctionArn:
+    Value: !GetAtt addCategoryFunction.Arn
+    Description: The ARN of the addCategoryFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:addCategoryFunction:Arn"
+  getRandomUserComplimentFunctionArn:
+    Value: !GetAtt getRandomUserComplimentFunction.Arn
+    Description: The ARN of the getRandomUserComplimentFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomUserComplimentFunction:Arn"
+  getRandomComplimentFunctionArn:
+    Value: !GetAtt getRandomComplimentFunction.Arn
+    Description: The ARN of the getRandomComplimentFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomComplimentFunction:Arn"
+  getUserFunctionArn:
+    Value: !GetAtt getUserFunction.Arn
+    Description: The ARN of the getUserFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getUserFunction:Arn"
+  personalityExtractorControllerFunctionArn:
+    Value: !GetAtt personalityExtractorControllerFunction.Arn
+    Description: The ARN of the personalityExtractorControllerFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:personalityExtractorControllerFunction:Arn"
+  userCategoryExtractorControllerFunctionArn:
+    Value: !GetAtt userCategoryExtractorControllerFunction.Arn
+    Description: The ARN of the userCategoryExtractorControllerFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
+  usernameExtractorControllerFunctionArn:
+    Value: !GetAtt usernameExtractorControllerFunction.Arn
+    Description: The ARN of the usernameExtractorControllerFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"

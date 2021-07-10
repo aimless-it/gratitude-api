@@ -7,7 +7,7 @@
 - [ ] Create Lambda for Stream
 - [X] Create openapi doc for api
 - [X] iam roles for lambda where necessary
-- [ ] extract template for nesting and modularization
+- [ ] extract template for nesting and modularization [ Began, but not implementing due to complexity and time constraint ]
 - [ ] Create userpool sms verification
 - [X] Create userpool api key
 - [ ] Finish configuring app user pool
