@@ -15,6 +15,9 @@
     "scripts": {
         "test": "jest",
         "api:lint": "speccy lint api.yml",
-        "sam:lint":"sam validate"
+        "sam:lint":"sam validate",
+        "sam:deploy":"sam deploy --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM",
+        "sam:deploy:inital":"sam deploy --guided --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM"
+
     }
 }
