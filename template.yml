@@ -682,7 +682,10 @@ Resources:
           GroupSet: 
             - !Ref bastionGroup
           SubnetId: !Ref sub1
-      UserData: !Base64 sudo yum update -y\nsudo yum install -y postgresql\n
+      UserData: !Base64 |
+        #!/bin/bash
+        sudo yum update -y
+        sudo yum install postgresql
       
 Outputs:
   RDSEndpoint:
