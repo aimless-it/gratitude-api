@@ -61,6 +61,7 @@ Resources:
       LambdaConfig:
         PostConfirmation: 
            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
+# TODO: Create full authentication and verification to be used in apiGW
       # Add SMS Verification
       # SmsConfiguration:
         
