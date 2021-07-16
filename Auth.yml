@@ -6,21 +6,21 @@ Parameters:
     Type: String
     Description: The environment staging name
     Default: env
+  DevPhoneNumber:
+    Type: String
+    Description: The phone number to use for testing sms
 
 Resources:
 # BEGIN: Authentication
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      # AccountRecoverySetting:
-      #   RecoveryMechanisms:
-      #     - Name: verified_email
-      #       Priority: 2
-      #     - Name: verified_phone_number
-      #       Priority: 1
-      # AutoVerifiedAttributes:
-      #   - email
-      #   - phone_number
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_phone_number
+            Priority: 1
+      AutoVerifiedAttributes:
+        - phone_number
       Policies:
         PasswordPolicy:
           MinimumLength: 6
@@ -61,9 +61,43 @@ Resources:
       LambdaConfig:
         PostConfirmation: 
            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
-# TODO: Create full authentication and verification to be used in apiGW
-      # Add SMS Verification
-      # SmsConfiguration:
+      SmsConfiguration:
+        SnsCallerArn: !GetAtt SmsRole.Arn #verify this is correct
         
+  SnsSmsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      ContentBasedDuplication: true
+      DisplayName: 'Phone Number Verifier'
+      FifoTopic: false
 
+  SnsSmsSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: sms
+      TopicArn: !GetAtt SnsSmsTopic.Arn
+
+  SmsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Iam role to call sns for sms messages
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cognito-idp.amazonaws.com
+            Action:
+              - sts:assumerole
+      Policies:
+        - PolicyName: sms-caller
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - sns:publish
+                Resource:
+                  - !GetAtt UserPool.Arn
   # END: Authentication
