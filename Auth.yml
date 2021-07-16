@@ -6,9 +6,6 @@ Parameters:
     Type: String
     Description: The environment staging name
     Default: env
-  DevPhoneNumber:
-    Type: String
-    Description: The phone number to use for testing sms
 
 Resources:
 # BEGIN: Authentication
@@ -62,12 +59,13 @@ Resources:
         PostConfirmation: 
            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
       SmsConfiguration:
+        ExternalId: PNVerifier
         SnsCallerArn: !GetAtt SmsRole.Arn #verify this is correct
         
   SnsSmsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      ContentBasedDuplication: true
+      ContentBasedDeduplication: true
       DisplayName: 'Phone Number Verifier'
       FifoTopic: false
 
@@ -75,7 +73,7 @@ Resources:
     Type: AWS::SNS::Subscription
     Properties:
       Protocol: sms
-      TopicArn: !GetAtt SnsSmsTopic.Arn
+      TopicArn: !Ref SnsSmsTopic
 
   SmsRole:
     Type: AWS::IAM::Role
@@ -99,5 +97,5 @@ Resources:
                 Action: 
                   - sns:publish
                 Resource:
-                  - !GetAtt UserPool.Arn
+                  - !Ref SnsSmsTopic
   # END: Authentication
