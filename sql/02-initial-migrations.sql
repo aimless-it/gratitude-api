@@ -1,3 +1,5 @@
+
+
 insert into compliment_user (username, email, gender, personality_type_id) values
     ('testUser1','user1@email.com', 'm', 19),
     ('testUser2','user2@email.com','f',30),
@@ -5,7 +7,7 @@ insert into compliment_user (username, email, gender, personality_type_id) value
 
 insert into category (name) values ('sad'),('mad'),('glad');
 
-insert into compliment (compliment, category_id, personality_type_id) values
+insert into compliment_information (compliment_text, category_id, personality_type_id) values
     ('you are good',1,19),
     ('youre a good person',2,30),
     ('say something',3,77);

@@ -18,9 +18,9 @@ create table category (
     name text unique
 );
 
-create table compliment(
+create table compliment_information(
     id serial primary key,
-    compliment text unique not null,
+    compliment_text text unique not null,
     category_id integer references category(id),
     personality_type_id integer references personality_type(id)
 );
@@ -41,7 +41,8 @@ create table compliment_user (
 
 create table user_category_preference(
     user_id integer references compliment_user(id),
-    category_id integer references category(id)
+    category_id integer references category(id),
+    primary key(user_id, category_id)
 );
 
 insert into personality_type(sensing, introversion, feeling, judging) values 
@@ -135,30 +136,37 @@ insert into personality_type(sensing, introversion, feeling, judging) values
     ('any','any','any', 'no'),
     ('any','any','any','any');
 
+
+
 ----------------------------------------------
-create function updateUserByEmailOrPhoneNumber(given_name text, family_name text, email text, phone_number char(11), gender char(1), ethnicity text, dob date, locale varchar(6)) returns compliment_user as $update$
-declare 
-intro compliment_user;
-cnt integer;
+create function updateUserByUsername(input_username text, input_given_name text, input_family_name text, input_email text, input_phone_number char(11), input_gender char(1), input_ethnicity text, input_dob date, input_locale varchar(6)) returns compliment_user as $update$
+DECLARE
+    intro compliment_user;
 BEGIN
-    select count(phone_number) into cnt from compliment_user where compliment_user.phone_number=phone_number;
-    if(cnt > 0) then
-        select * into intro from compliment_user where compliment_user.phone_number=phone_number;
-    else select * into intro from compliment_user where compliment_user.email=email;
-    end if;
+    update compliment_user a set 
+        given_name = (select coalesce(input_given_name, a.given_name)), 
+        family_name = (select coalesce(input_family_name, a.family_name)),
+        email = (select coalesce(input_email, a.email)),
+        phone_number = (select coalesce(input_phone_number, a.phone_number)),
+        gender = (select coalesce(input_gender, a.gender)),
+        ethnicity = (select coalesce(input_ethnicity, a.ethnicity)),
+        dob = (select coalesce(input_dob, a.dob)),
+        locale = (select coalesce(input_locale, a.locale))
+        where a.username = input_username;
+    select * into intro from compliment_user where username = input_username;
     return intro;
-end 
+end;
 $update$ language plpgsql;
 
------------------------------------------------
-create function getAllComplimentsByUsername(input_username text) returns table(category_name text) as $getAllByUserId$
+-----------------------------------------------+
+create or replace function getAllCategoryByUsername(input_username text) returns table(category_name text) as $getAllByUserId$
 BEGIN
-    return query select name as category_name from category where id in (select id from user_category_preference where user_id = (select user_id from compliment_user where username = $1));
+    return query select name as category_name from category where id in (select category_id from user_category_preference where user_id = (select id from compliment_user where username = $1));
 END; 
 $getAllByUserId$ language plpgsql;
 
------------------------------------------------
-create function addComplimentToUserPreferences(input_username text, input_category text) returns table(category_name text) as $updateUserCategory$
+-----------------------------------------------+
+create function addCategoryToUserPreferences(input_username text, input_category text) returns table(category_name text) as $updateUserCategory$
 DECLARE 
     res_user_id integer;
     res_category_id integer;
@@ -166,12 +174,12 @@ BEGIN
     select id into res_user_id from compliment_user where username = $1;
     select id into res_category_id from category where name = $2;
     insert into user_category_preference values (res_user_id, res_category_id);
-    return query select getAllComplimentsByUsername(input_username);
+    return query select getAllCategoryByUsername(input_username);
 END;
 $updateUserCategory$ language plpgsql;
 
 ------------------------------------------------
-create function removeComplimentFromUserPreferences(input_username text, input_category text) returns table(category_name text) as $removeCategory$
+create function removeCategoryFromUserPreferences(input_username text, input_category text) returns table(category_name text) as $removeCategory$
 DECLARE
     res_user_id integer;
     res_category_id integer;
@@ -179,7 +187,7 @@ BEGIN
     select id into res_user_id from compliment_user where username = $1;
     select id into res_category_id from category where name = $2;
     delete from user_category_preference where user_id = res_user_id and category_id = res_category_id;
-    return query select getAllComplimentsByUsername($1);
+    return query select getAllCategoryByUsername($1);
 END;
 $removeCategory$ language plpgsql;
 
@@ -191,7 +199,7 @@ DECLARE
 
 BEGIN
     select * into user_info from compliment_user where username = $1;
-    select compliment into compliment_text from compliment where category_id in (
+    select compliment_text into compliment_text from compliment_information where category_id in (
         select category_id from user_category_preference where user_id = user_info.id)
         and personality_type_id = user_info.personality_type_id order by random() limit 1;
     return compliment_text as compliment;
@@ -203,10 +211,10 @@ create function getComplimentByInformation(input_sensing text, input_introversio
 DECLARE
     compliment_text text;
 BEGIN
-    return query select compliment from compliment where personality_type_id = (
-        select id from personality_type where sensing = input_sensing and feeling = input_feeling
-            and introversion = input_introversion and judging = input_judging) and category_id = (
-                select id from category where name = input_category
+    return query select c.compliment_text from compliment_information c where c.personality_type_id = (
+        select p.id from personality_type p where p.sensing = input_sensing and p.feeling = input_feeling
+            and p.introversion = input_introversion and p.judging = input_judging) and c.category_id = (
+                select t.id from category t where t.name = input_category
             ) order by random() limit 1;
 END
 $getCompliment$ LANGUAGE plpgsql;
