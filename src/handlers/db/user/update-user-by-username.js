@@ -24,7 +24,7 @@ const client = new Client()
  */
 module.exports.handler = async (event, context) => {
     await client.connect();
-    const { user } = JSON.parse(event).body;
+    const { user } = JSON.parse(event.body);
     const query = {
         text: "select * from updateUserByUsername($1, $2, $3, $4, $5, $6, $7, $8, $9)",
         values: [
@@ -38,19 +38,25 @@ module.exports.handler = async (event, context) => {
             user.dob || null,
             user.locale || null
         ],
-        rowMode: 'array'
     };
-    const res = client.query(query)
-    const { givenName, familyName, email, phoneNumber, ethnicity, dob, locale } = res.rows[0];
-    return {
-        username: user.username,
-        givenName,
-        familyName,
-        email,
-        phoneNumber,
-        ethnicity,
-        dob,
-        locale
+    try {
+        await client.query('BEGIN')
+        const res = await client.query(query)
+        await client.query(process.env.NODE_ENV === 'prod' ? 'COMMIT' : 'ROLLBACK')
+        const { given_name : givenName, family_name : familyName, email, phone_number : phoneNumber, ethnicity, dob, locale, gender} = res.rows[0];
+        return { 
+            username: user.username,
+            givenName,
+            familyName,
+            email,
+            phoneNumber,
+            ethnicity,
+            dob,
+            locale,
+            gender
 
-    };
+        };
+    } finally {
+        client.end()
+    }
 }
