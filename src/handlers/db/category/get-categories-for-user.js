@@ -22,7 +22,7 @@ exports.handler = async (event, context) => {
     await client.connect();
     const { user } = JSON.parse(event.body);
     const query = {
-        text: "select getAllByUserId($1)",
+        text: "select getAllCategoryByUsername($1)",
         values: [user.username],
         rowMode: 'array'
     };
@@ -32,5 +32,6 @@ exports.handler = async (event, context) => {
     for (const row of res.rows) {
         arr.push(...row);
     }
+    client.end();
     return arr;
 }

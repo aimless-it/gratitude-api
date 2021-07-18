@@ -1,8 +1,5 @@
 create user app_user with password 'app_password';
-create schema compliments;
-grant all PRIVILEGES on schema compliments to app_user;
 \c postgres app_user;
-set schema 'compliments';
 
 
 create table personality_type(
@@ -194,22 +191,20 @@ $removeCategory$ language plpgsql;
 -------------------------------------------------
 create or replace function getComplimentByUsername(input_username text) returns text as $getCompliment$
 DECLARE
-    compliment_text text;
+    output_compliment_text text;
     user_info compliment_user;
 
 BEGIN
     select * into user_info from compliment_user where username = $1;
-    select compliment_text into compliment_text from compliment_information where category_id in (
-        select category_id from user_category_preference where user_id = user_info.id)
-        and personality_type_id = user_info.personality_type_id order by random() limit 1;
+    select c.compliment_text into output_compliment_text from compliment_information c where c.category_id in (
+        select u.category_id from user_category_preference u where u.user_id = user_info.id)
+        and c.personality_type_id = user_info.personality_type_id order by random() limit 1;
     return compliment_text as compliment;
 END;
 $getCompliment$ LANGUAGE plpgsql;
 
 -------------------------------------------------
 create function getComplimentByInformation(input_sensing text, input_introversion text, input_feeling text, input_judging text, input_category text) returns table(compliment text) as $getCompliment$
-DECLARE
-    compliment_text text;
 BEGIN
     return query select c.compliment_text from compliment_information c where c.personality_type_id = (
         select p.id from personality_type p where p.sensing = input_sensing and p.feeling = input_feeling
@@ -220,3 +215,26 @@ END
 $getCompliment$ LANGUAGE plpgsql;
 
 ------------------------------------------------
+
+
+
+insert into compliment_user (username, email, gender, personality_type_id) values
+    ('testUser1','user1@email.com', 'm', 19),
+    ('testUser2','user2@email.com','f',30),
+    ('testUser3','user3@email.com','m',77);
+
+insert into category (name) values ('sad'),('mad'),('glad');
+
+insert into compliment_information (compliment_text, category_id, personality_type_id) values
+    ('you are good',1,19),
+    ('youre a good person',2,30),
+    ('say something',3,77);
+
+insert into user_category_preference values 
+    (1,1),
+    (1,2),
+    (1,3),
+    (2,1),
+    (3,2);
+
+set search_path to '$user','public','compliments';
