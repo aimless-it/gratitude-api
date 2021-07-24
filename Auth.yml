@@ -99,3 +99,9 @@ Resources:
                 Resource:
                   - !Ref SnsSmsTopic
   # END: Authentication
+
+Outputs:
+  UserPoolArn:
+    Value: !GetAtt UserPool.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
