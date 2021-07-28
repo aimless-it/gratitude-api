@@ -18,6 +18,6 @@
         "api:lint": "speccy lint newGW.yml",
         "sam:lint": "sam validate",
         "sam:deploy": "sam deploy --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM",
-        "sam:deploy:inital": "sam deploy --guided --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM"
+        "sam:deploy:initial": "sam deploy --guided --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM"
     }
 }

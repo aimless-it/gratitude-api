@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform:
-- AWS::Serverless-2016-10-31
+  - AWS::Serverless-2016-10-31
 Parameters:
   ENV:
     Type: String
@@ -8,7 +8,7 @@ Parameters:
     Default: env
 
 Resources:
-# BEGIN: Authentication
+  # BEGIN: Authentication
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -50,54 +50,52 @@ Resources:
         - Name: email
           AttributeDataType: String
           Required: true
-          Mutable: false 
+          Mutable: false
         - Name: locale
           AttributeDataType: String
           Required: false
-          Mutable: true     
+          Mutable: true
       LambdaConfig:
-        PostConfirmation: 
-           Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
+        PostConfirmation:
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
       SmsConfiguration:
         ExternalId: PNVerifier
         SnsCallerArn: !GetAtt SmsRole.Arn #verify this is correct
-        
+
   SnsSmsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      ContentBasedDeduplication: true
-      DisplayName: 'Phone Number Verifier'
+      DisplayName: "Phone Number Verifier"
       FifoTopic: false
+      TopicName: snsTopic
 
-  SnsSmsSubscription:
-    Type: AWS::SNS::Subscription
-    Properties:
-      Protocol: sms
-      TopicArn: !Ref SnsSmsTopic
+  # SnsSmsSubscription:
+  #   Type: AWS::SNS::Subscription
+  #   Properties:
+  #     Protocol: sms
+  #     TopicArn: !Ref SnsSmsTopic
 
   SmsRole:
     Type: AWS::IAM::Role
     Properties:
       Description: Iam role to call sns for sms messages
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
-              Service:
-                - cognito-idp.amazonaws.com
-            Action:
-              - sts:assumerole
+              Service: cognito-idp.amazonaws.com
+            Action: sts:AssumeRole
       Policies:
         - PolicyName: sms-caller
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
-                  - sns:publish
+                Action:
+                  - sns:*
                 Resource:
-                  - !Ref SnsSmsTopic
+                  - '*'
   # END: Authentication
 
 Outputs:

@@ -167,7 +167,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::ImportValue: !Sub "gratitude:${AWS::REGION}:${ENV}:apiRole:Arn"
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -219,7 +219,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::ImportValue: !Sub "gratitude:${AWS::REGION}:${ENV}:apiRole:Arn"
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -273,7 +273,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::ImportValue: !Sub "gratitude:${AWS::REGION}:${ENV}:apiRole:Arn"
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -322,7 +322,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::ImportValue: !Sub "gratitude:${AWS::REGION}:${ENV}:apiRole:Arn"
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -378,7 +378,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::ImportValue: !Sub "gratitude:${AWS::REGION}:${ENV}:apiRole:Arn"
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -430,7 +430,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::ImportValue: !Sub "gratitude:${AWS::REGION}:${ENV}:apiRole:Arn"
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:

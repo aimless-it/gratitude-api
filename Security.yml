@@ -155,26 +155,7 @@ Resources:
                   # - !GetAtt personalityExtractorControllerFunction.Arn
                   # - !GetAtt usernameExtractorControllerFunction.Arn
                   # - !GetAtt userCategoryExtractorControllerFunction.Arn
-  apiRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          -
-            Effect: 'Allow'
-            Principal:
-              Service:
-                - apigateway.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: apiGW-Integration
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action: states:StartExecution
-                Resource:
-                  - '*'
+  
   # END: Security
 
 Outputs:
@@ -202,7 +183,3 @@ Outputs:
     Value: !GetAtt workflowRole.Arn
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
-  ApiGWRoleArn:
-    Value: !GetAtt apiRole.Arn
-    Export:
-      Name: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"

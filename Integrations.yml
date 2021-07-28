@@ -8,25 +8,510 @@ Parameters:
     Default: dev
 Resources:
   # BEGIN: Integration
+  apiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: apiGW-Integration
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource:
+                  - '*'
   apiGW:
     Type: AWS::Serverless::Api
     Properties:
-      Auth:
-        Authorizers:
-          CognitoAuth:
-            UserPoolArn:
-              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
-            AuthType: COGNITO_USER_POOLS
-        ApiKeyRequired: false
-        AddDefaultAuthorizerToCorsPreflight: false
+      # Auth:
+      #   Authorizers:
+      #     CognitoAuth:
+      #       UserPoolArn:
+      #         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
+      #       AuthType: COGNITO_USER_POOLS
+      #   ApiKeyRequired: false
+      #   AddDefaultAuthorizerToCorsPreflight: false
       Description: Api Gateway for gratitude api
       OpenApiVersion: 3.0.3
       StageName: !Ref ENV
+      # DefinitionBody:
+      #   Fn::Transform:
+      #     Name: AWS::Include
+      #     Parameters:
+      #       Location: newGW.yml
       DefinitionBody:
-        Fn::Transform:
-          Name: AWS::Include
-          Parameters:
-            Location: newGW.ymls
+        openapi: '3.0.3'
+        tags:
+          - name: purpose
+            description: api gateway for gratitude api
+        info:
+          title: API Title
+          version: '1.0'
+          contact:
+            name: connellrobert
+        components:
+          schemas:
+            User:
+              type: object
+              required:
+                - username
+              properties:
+                id: 
+                  type: integer
+                  format: int32
+                username:
+                  type: string
+                givenName:
+                  type: string
+                familyName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phoneNumber:
+                  type: string
+                  format: telephone
+                gender:
+                  type: string
+                  format: character
+                ethnicity:
+                  type: string
+                dob:
+                  type: string
+                  format: date
+                locale:
+                  type: string
+                  format: i8nSpecification
+                personalityType:
+                  type: object
+                  required:
+                    - sensing
+                    - introversion
+                    - judging
+                    - feeling
+                  properties:
+                    id:
+                      type: integer
+                      format: int32
+                    sensing:
+                      type: string
+                    introversion:
+                      type: string
+                    feeling:
+                      type: string
+                    judging:
+                      type: string
+                    
+            Compliment:
+              type: object
+              properties:
+                compliment:
+                  type: string
+          parameters:
+            sensingQuery:
+              in: query
+              name: sensing
+              description: A query parameter to specify the sensing attribute for personality types
+              required: true
+              schema:
+                type: string
+            introversionQuery:
+              in: query
+              name: introversion
+              description: A query parameter to specify the introversion attribute for personality types
+              required: true
+              schema:
+                type: string
+            feelingQuery:
+              in: query
+              name: feeling
+              description: A query parameter to specify the feeling attribute for personality types
+              required: true
+              schema:
+                type: string
+            judgingQuery:
+              in: query
+              name: judging
+              description: A query parameter to specify the judging attribute for personality types
+              required: true
+              schema:
+                type: string
+            usernameParameter:
+              in: path
+              name: username
+              description: A path parameter to specify the username for a user
+              required: true
+              schema:
+                type: string
+            categoryParameter:
+                in: path
+                name: category
+                description: A path parameter to specify the category for a compliment
+                required: true
+                schema:
+                  type: string
+          securitySchemes:
+            apiSec:
+              type: apiKey
+              description: api key for accessing the api for developers
+              name: api-key
+              in: header
+          requestBodies:
+            userCategoryRequest:
+              description: An object with the user's username and the category name
+              required: true
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      category:
+                        type: string
+          responses:
+            default400:
+              description: Bad Request
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        format: character
+        security:
+          - apiSec: []
+        paths:
+          /user/{username}:
+            get:
+              operationId: getUserInfo
+              tags:
+                - get user information
+              parameters:
+                - $ref: '#/components/parameters/usernameParameter'
+              description: Get a users information given the username
+              responses:
+                '200':
+                  description: The returned user
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/components/schemas/User'
+                '403':
+                  description: Error due to authorization
+                  content:
+                    application/json:
+                      schema:
+                          type: string
+                '400':
+                  $ref: "#/components/responses/default400"
+              x-amazon-apigateway-integration:
+                type: "aws"
+                credentials: !GetAtt apiRole.Arn
+                httpMethod: "POST"
+                uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+                responses:
+                  "200":
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "400":
+                    statusCode: "400"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "403":
+                    statusCode: "403"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result')"
+                requestTemplates:
+                  application/json: 
+                    !Join 
+                      - ""
+                      - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                        - !Ref getUserWorkflow
+                        - "\"}"
+                passthroughBehavior: "when_no_match"
+
+          /compliment/{category}:
+            get:
+              operationId: getComplimentByCategoryAndPersonalityType
+              tags:
+                - get compliment by category and personality type
+              parameters:
+                - $ref: '#/components/parameters/categoryParameter'
+                - $ref: '#/components/parameters/sensingQuery'
+                - $ref: '#/components/parameters/feelingQuery'
+                - $ref: '#/components/parameters/introversionQuery'
+                - $ref: '#/components/parameters/judgingQuery'
+              description: Get a compliment given the category and personality type
+              responses:
+                '200':
+                  description: The returned compliment
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/components/schemas/Compliment'
+                '403':
+                  description: Error due to authorization
+                  content:
+                    application/json:
+                      schema:
+                        type: string
+                '400':
+                  $ref: '#/components/responses/default400'
+              x-amazon-apigateway-integration:
+                type: "aws"
+                credentials: !GetAtt apiRole.Arn
+                httpMethod: "POST"
+                uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+                responses:
+                  "200":
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "400":
+                    statusCode: "400"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "403":
+                    statusCode: "403"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result')"
+                requestTemplates:
+                  application/json: 
+                    !Join 
+                      - ""
+                      - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                        - !Ref getComplimentByCategoryWorkflow
+                        - "\"}"
+                passthroughBehavior: "when_no_match"
+          /compliment/user/{username}:
+            parameters:
+              - $ref: '#/components/parameters/usernameParameter'
+            get:
+              operationId: getComplimentByUsername
+              tags:
+                - get compliment by username
+              description: Get a compliment given the users username
+              responses:
+                '200':
+                  description: The generated compliment
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/components/schemas/Compliment'
+                '400':
+                  description: The username was not valid
+                  content:
+                    application/json:
+                      schema:
+                        type : object
+                        properties:
+                          error:
+                            type: string
+                '403':
+                  description: Error due to authorization
+                  content:
+                    application/json:
+                      schema:
+                        type: string
+              x-amazon-apigateway-integration:
+                type: "aws"
+                credentials: !GetAtt apiRole.Arn
+                httpMethod: "POST"
+                uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+                responses:
+                  "200":
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "400":
+                    statusCode: "400"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "403":
+                    statusCode: "403"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result')"
+                requestTemplates:
+                  application/json: 
+                    !Join 
+                      - ""
+                      - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                        - !Ref getComplimentByUsernameWorkflow
+                        - "\"}"
+                passthroughBehavior: "when_no_match"
+          /category/user/{username}:
+            parameters:
+              - $ref: '#/components/parameters/usernameParameter'
+            get:
+              operationId: getCategoriesForUser
+              tags:
+                - get category for a user
+              description: Get the categories that a user is subscribed to
+              responses:
+                '200':
+                  description: The categories that a user is subscribed to
+                  content:
+                    application/json:    
+                      schema:
+                        type: array
+                        items:
+                          type: string
+                '403':
+                  description: Error due to authorization
+                  content:
+                    application/json:
+                      schema:
+                          type: string
+                '400':
+                  $ref: '#/components/responses/default400'
+              x-amazon-apigateway-integration:
+                type: "aws"
+                credentials: !GetAtt apiRole.Arn
+                httpMethod: "POST"
+                uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+                responses:
+                  "200":
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "400":
+                    statusCode: "400"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "403":
+                    statusCode: "403"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result')"
+                requestTemplates:
+                  application/json:
+                    !Join 
+                      - ""
+                      - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                        - !Ref getComplimentByUsernameWorkflow
+                        - "\"}" 
+                passthroughBehavior: "when_no_match"
+          /user/{username}/category/{category}:
+            parameters:
+              - $ref: '#/components/parameters/usernameParameter'
+              - $ref: '#/components/parameters/categoryParameter'
+            post:
+              operationId: subscribeUserToCategory
+              tags:
+                - subscribe user to category
+              description: Subscribe a user to a category
+              responses:
+                '200':
+                  description: The user has been subscribed and the new categories are returned
+                  content:
+                    application/json:
+                      schema:
+                        type: array
+                        items:
+                          type: string
+                '403':
+                  description: Error due to authorization
+                  content:
+                    application/json:
+                      schema:
+                        type: string
+                '400':
+                  description: The username or category was incorrect
+                  content:
+                    application/json:
+                      schema:
+                        type: array
+                        items:
+                          type: string
+              x-amazon-apigateway-integration:
+                type: "aws"
+                credentials: !GetAtt apiRole.Arn
+                httpMethod: "POST"
+                uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+                responses:
+                  "200":
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "400":
+                    statusCode: "400"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "403":
+                    statusCode: "403"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result')"
+                requestTemplates:
+                  application/json:
+                    !Join 
+                      - ""
+                      - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                        - !Ref postUserCategoryWorkflow
+                        - "\"}"
+                passthroughBehavior: "when_no_match"
+            delete:
+              operationId: unsubscribeUserFromCategory
+              tags:
+                - unsubscribe a user from a category
+              description: Unsubscribe a user from a category
+              responses:
+                '200':
+                  description: The user has successfully unsubscribed from the category and is returning the new category list
+                  content:
+                    application/json:
+                      schema:
+                        type: array
+                        items:
+                          type: string
+                '403':
+                  description: Error due to authorization
+                  content:
+                    application/json:
+                      schema:
+                        type: string
+                '400':
+                  description: The username or category was incorrect
+                  content: 
+                    application/json:
+                      schema:
+                        type: array
+                        items:
+                          type: string
+              x-amazon-apigateway-integration:
+                type: "aws"
+                credentials: !GetAtt apiRole.Arn
+                httpMethod: "POST"
+                uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+                responses:
+                  "200":
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "400":
+                    statusCode: "400"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result'))"
+                  "403":
+                    statusCode: "403"
+                    responseTemplates:
+                      application/json: "#set ($root=$input.path('$.result')"
+                requestTemplates:
+                  application/json: 
+                    !Join 
+                      - ""
+                      - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                        - !Ref deleteUserCategoryWorkflow
+                        - "\"}"
+                passthroughBehavior: "when_no_match"
   getUserWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:

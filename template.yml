@@ -88,7 +88,7 @@ Resources:
 
   IntegrationsStack:
     Type: AWS::Serverless::Application
-    DependsOn: FunctionStack
+    DependsOn: AuthStack
     DeletionPolicy: Delete
     Properties:
       Location: Integrations.yml
