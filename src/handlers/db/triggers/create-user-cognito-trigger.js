@@ -45,17 +45,33 @@ exports.handler = async (event, context) => {
             attributes.gender || null,
             attributes.ethnicity || null,
             attributes.birthdate || null,
-            attributes.locale || null
+            attributes.locale || 'EN-US'
         ]
     }
 
     try{
         await client.query('BEGIN')
         await client.query(query);
-        await client.query('COMMIT');
+        const res = await client.query('select * from compliment_user where username = $1', [body.userName]);
+        await client.query(process.env.NODE_ENV === 'prod' ? 'COMMIT' : 'ROLLBACK');
+        const { given_name : givenName, family_name : familyName, email, phone_number : phoneNumber, ethnicity, dob, locale, gender} = res.rows[0];
+        return { 
+            username: body.userName,
+            givenName,
+            familyName,
+            email,
+            phoneNumber,
+            ethnicity,
+            dob,
+            locale,
+            gender
+
+        };
+
     } catch(err) {
         console.error(`error saving to db on ${Date.now()}: ${err}`);
-        
+    } finally {
+        client.end();
     }
 
     return event;

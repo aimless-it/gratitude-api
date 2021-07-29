@@ -28,10 +28,19 @@ exports.handler = async (event, context) => {
     const {personalityType, category} = JSON.parse(event.body).query;
 
     const query = {
-        text: "select getComplimentByInformation($1. $2, $3, $4, $5)",
+        text: "select getComplimentByInformation($1, $2, $3, $4, $5)",
         values: [personalityType.sensing, personalityType.introversion, personalityType.feeling, personalityType.judging, category],
+        rowMode: 'array'
     }
+    try {
 
-    const res = await client.query(query);
-    return res.rows[0].compliment;
+        
+        const res = await client.query(query);
+        return res.rows[0][0];
+    } catch(err) {
+        console.error(err);
+    } finally {
+        client.end();
+    }
+    return '';
 }

@@ -1,179 +1,215 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform:
-- AWS::Serverless-2016-10-31
+  - AWS::Serverless-2016-10-31
 Parameters:
   ENV:
     Type: String
     Description: The environment staging name
     Default: dev
 Resources:
- # BEGIN: Integration
-  # apiGW:
-  #   Type: AWS::Serverless::Api
-  #   Properties:
-  #     DefinitionUri: api.yml
-  #     Description: Api Gateway for gratitude api
-  #     OpenApiVersion: 3.0.3
-  #     StageName: dev
+  # BEGIN: Integration
+  apiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: apiGW-Integration
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource:
+                  - '*'
+  apiGW:
+    Type: AWS::Serverless::Api
+    Properties:
+      # Auth:
+      #   Authorizers:
+      #     CognitoAuth:
+      #       UserPoolArn:
+      #         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
+      #       AuthType: COGNITO_USER_POOLS
+      #   ApiKeyRequired: false
+      #   AddDefaultAuthorizerToCorsPreflight: false
+      Description: Api Gateway for gratitude api
+      OpenApiVersion: 3.0.3
+      StageName: !Ref ENV
+      # DefinitionBody:
+      #   Fn::Transform:
+      #     Name: AWS::Include
+      #     Parameters:
+      #       Location: newGW.yml
+      DefinitionBody:
+        Fn::Transform:
+          Name: 'AWS::Include'
+          Parameters:
+            Location: api.yml
   getUserWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Events:
-        getUserInfoEvent:
-          Type: Api
-          Properties:
-            Path: /user/{username}
-            Method: get
-            # RestApiId: !Ref apiGW
+      # Events:
+      #   getUserInfoEvent:
+      #     Type: Api
+      #     Properties:
+      #       Path: /user/{username}?sensing&judging&introversion&feeling
+      #       Method: get
+      #       # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
             Next: service
           service:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getUserFunction:Arn"
             End: true
         StartAt: controller
-      Tracing: 
+      Tracing:
         Enabled: true
-      Role: 
+      Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getComplimentByCategoryWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Events:
-        getComplimentEvent:
-          Type: Api
-          Properties:
-            Path: /compliment/{category}
-            Method: get
-            # RestApiId: !Ref apiGW
+      # Events:
+      #   getComplimentEvent:
+      #     Type: Api
+      #     Properties:
+      #       Path: /compliment/{category}
+      #       Method: get
+      #       # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:personalityExtractorControllerFunction:Arn"
             Next: service
           service:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomComplimentFunction:Arn"
             End: true
         StartAt: controller
-      Tracing: 
+      Tracing:
         Enabled: true
-      Role: 
+      Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getComplimentByUsernameWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Events:
-        getComplimentEvent:
-          Type: Api
-          Properties:
-            Path: /compliment/user/{username}
-            Method: get
-            # RestApiId: !Ref apiGW
+      # Events:
+      #   getComplimentEvent:
+      #     Type: Api
+      #     Properties:
+      #       Path: /compliment/user/{username}
+      #       Method: get
+      #       # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
             Next: service
           service:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomUserComplimentFunction:Arn"
             End: true
         StartAt: controller
-      Tracing: 
+      Tracing:
         Enabled: true
-      Role: 
+      Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getCategoriesForUserWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Events:
-        getCategoriesEvent:
-          Type: Api
-          Properties:
-            Path: /category/user/{username}
-            Method: get
-            # RestApiId: !Ref apiGW
+      # Events:
+      #   getCategoriesEvent:
+      #     Type: Api
+      #     Properties:
+      #       Path: /category/user/{username}
+      #       Method: get
+      #       # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
             Next: service
           service:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getCategoryFunction:Arn"
             End: true
         StartAt: controller
-      Tracing: 
+      Tracing:
         Enabled: true
-      Role: 
+      Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   postUserCategoryWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Events:
-        postUserCategoryEvent:
-          Type: Api
-          Properties:
-            Path: /user/{username}/category/{category}
-            Method: post
-            # RestApiId: !Ref apiGW
+      # Events:
+      #   postUserCategoryEvent:
+      #     Type: Api
+      #     Properties:
+      #       Path: /user/{username}/category/{category}
+      #       Method: post
+      #       # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
             Next: service
           service:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:addCategoryFunction:Arn"
             End: true
         StartAt: controller
-      Tracing: 
+      Tracing:
         Enabled: true
-      Role: 
+      Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   deleteUserCategoryWorkflow:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Events:
-        deleteUserCategoryEvent:
-          Type: Api
-          Properties:
-            Path: /user/{username}/category/{category}
-            Method: delete
-            # RestApiId: !Ref apiGW
+      # Events:
+      #   deleteUserCategoryEvent:
+      #     Type: Api
+      #     Properties:
+      #       Path: /user/{username}/category/{category}
+      #       Method: delete
+      #       # RestApiId: !Ref apiGW
       Definition:
         States:
           controller:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
             Next: service
           service:
             Type: Task
-            Resource: 
+            Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:removeCategoryFunction:Arn"
             End: true
         StartAt: controller
-      Tracing: 
+      Tracing:
         Enabled: true
-      Role: 
+      Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"

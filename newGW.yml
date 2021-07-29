@@ -167,7 +167,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::GetAtt: apiRole.Arn
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -184,12 +184,9 @@ paths:
             responseTemplates:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
-          application/json: 
-            Fn::Join:
-              - ""
-              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
-                - Ref: getUserWorkflow
-                - "\"}"
+          application/json: !Sub "{\"input\": \"$util.escapeJavaScript($input.json('$'))\"\
+            , \"stateMachineArn\": \"${getUserWorkflow}\"\
+            }"
         passthroughBehavior: "when_no_match"
 
   /compliment/{category}:
@@ -222,7 +219,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::GetAtt: apiRole.Arn
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -239,12 +236,9 @@ paths:
             responseTemplates:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
-          application/json: 
-            Fn::Join:
-              - ""
-              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
-                - Ref: getComplimentByCategoryWorkflow
-                - "\"}"
+          application/json: !Sub "{\"input\": \"$util.escapeJavaScript($input.json('$'))\"\
+            , \"stateMachineArn\": \"${getComplimentByCategoryWorkflow}\"\
+            }"
         passthroughBehavior: "when_no_match"
   /compliment/user/{username}:
     parameters:
@@ -279,7 +273,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::GetAtt: apiRole.Arn
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -296,12 +290,9 @@ paths:
             responseTemplates:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
-          application/json: 
-            Fn::Join:
-              - ""
-              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
-                - Ref: getComplimentByUsernameWorkflow
-                - "\"}"
+          application/json: !Sub "{\"input\": \"$util.escapeJavaScript($input.json('$'))\"\
+            , \"stateMachineArn\": \"${getComplimentByUsernameWorkflow}\"\
+            }"
         passthroughBehavior: "when_no_match"
   /category/user/{username}:
     parameters:
@@ -331,7 +322,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::GetAtt: apiRole.Arn
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -348,12 +339,9 @@ paths:
             responseTemplates:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
-          application/json:
-            Fn::Join:
-              - ""
-              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
-                - Ref: getComplimentByUsernameWorkflow
-                - "\"}" 
+          application/json: !Sub "{\"input\": \"$util.escapeJavaScript($input.json('$'))\"\
+            , \"stateMachineArn\": \"${getComplimentByUsernameWorkflow}\"\
+            }"
         passthroughBehavior: "when_no_match"
   /user/{username}/category/{category}:
     parameters:
@@ -390,7 +378,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::GetAtt: apiRole.Arn
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -407,12 +395,9 @@ paths:
             responseTemplates:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
-          application/json:
-            Fn::Join: 
-              - ""
-              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
-                - Ref: postUserCategoryWorkflow
-                - "\"}"
+          application/json: !Sub "{\"input\": \"$util.escapeJavaScript($input.json('$'))\"\
+            , \"stateMachineArn\": \"${postUserCategoryWorkflow}\"\
+            }"
         passthroughBehavior: "when_no_match"
     delete:
       operationId: unsubscribeUserFromCategory
@@ -445,7 +430,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
-          Fn::GetAtt: apiRole.Arn
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:apiRole:Arn"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         responses:
@@ -462,10 +447,7 @@ paths:
             responseTemplates:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
-          application/json: 
-            Fn::Join: 
-              - ""
-              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
-                - Ref: deleteUserCategoryWorkflow
-                - "\"}"
+          application/json: !Sub "{\"input\": \"$util.escapeJavaScript($input.json('$'))\"\
+            , \"stateMachineArn\": \"${deleteUserCategoryWorkflow}\"\
+            }"
         passthroughBehavior: "when_no_match"

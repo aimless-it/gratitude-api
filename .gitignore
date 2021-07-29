@@ -1,2 +1,4 @@
 node_modules
 samconfig.toml
+.vscode/
+coverage/

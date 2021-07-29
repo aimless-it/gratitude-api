@@ -21,9 +21,15 @@ exports.handler = async (event, context) => {
   const { user } = JSON.parse(event.body);
   const query = {
     text: "select getComplimentByUsername($1)",
-    values: [user.username]
+    values: [user.username],
+    rowMode: 'array'
   };
 
-  const res = await client.query(query);
-  return res.rows[0].compliment;
+  try {
+    const res = await client.query(query);
+    return res.rows[0][0];
+  } finally {
+    await client.end();
+  }
+
 };

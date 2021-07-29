@@ -155,6 +155,7 @@ Resources:
                   # - !GetAtt personalityExtractorControllerFunction.Arn
                   # - !GetAtt usernameExtractorControllerFunction.Arn
                   # - !GetAtt userCategoryExtractorControllerFunction.Arn
+  
   # END: Security
 
 Outputs:

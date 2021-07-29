@@ -20,15 +20,21 @@ exports.handler = async (event, context) => {
     await client.connect();
     const { user } = JSON.parse(event.body);
     const query = {
-        text: "select addComplimentToUserPreferences($1, $2)",
+        text: "select addCategoryToUserPreferences($1, $2)",
         values: [user.username, user.category],
         rowMode: 'array'
     };
 
-    const res = await client.query(query)
-    const arr = [];
-    for (const row of res.rows) {
-        arr.push(...row)
+    try {
+        client.query('BEGIN');
+        const res = await client.query(query)
+        await client.query(process.env.NODE_ENV === 'prod' ? 'COMMIT' : 'ROLLBACK');
+        const arr = [];
+        for (const row of res.rows) {
+            arr.push(...row)
+        }
+        return arr;
+    } finally {
+        client.end();
     }
-    return arr;
 }

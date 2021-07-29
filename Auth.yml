@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform:
-- AWS::Serverless-2016-10-31
+  - AWS::Serverless-2016-10-31
 Parameters:
   ENV:
     Type: String
@@ -8,19 +8,16 @@ Parameters:
     Default: env
 
 Resources:
-# BEGIN: Authentication
+  # BEGIN: Authentication
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      # AccountRecoverySetting:
-      #   RecoveryMechanisms:
-      #     - Name: verified_email
-      #       Priority: 2
-      #     - Name: verified_phone_number
-      #       Priority: 1
-      # AutoVerifiedAttributes:
-      #   - email
-      #   - phone_number
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_phone_number
+            Priority: 1
+      AutoVerifiedAttributes:
+        - phone_number
       Policies:
         PasswordPolicy:
           MinimumLength: 6
@@ -53,16 +50,56 @@ Resources:
         - Name: email
           AttributeDataType: String
           Required: true
-          Mutable: false 
+          Mutable: false
         - Name: locale
           AttributeDataType: String
           Required: false
-          Mutable: true     
+          Mutable: true
       LambdaConfig:
-        PostConfirmation: 
-           Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
-      # Add SMS Verification
-      # SmsConfiguration:
-        
+        PostConfirmation:
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
+      SmsConfiguration:
+        ExternalId: PNVerifier
+        SnsCallerArn: !GetAtt SmsRole.Arn #verify this is correct
 
+  SnsSmsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "Phone Number Verifier"
+      FifoTopic: false
+      TopicName: snsTopic
+
+  # SnsSmsSubscription:
+  #   Type: AWS::SNS::Subscription
+  #   Properties:
+  #     Protocol: sms
+  #     TopicArn: !Ref SnsSmsTopic
+
+  SmsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Iam role to call sns for sms messages
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cognito-idp.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: sms-caller
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:*
+                Resource:
+                  - '*'
   # END: Authentication
+
+Outputs:
+  UserPoolArn:
+    Value: !GetAtt UserPool.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
