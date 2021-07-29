@@ -127,6 +127,17 @@ components:
                 type: string
               category:
                 type: string
+  responses:
+    default400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                format: character
 security:
   - apiSec: []
 paths:
@@ -151,6 +162,36 @@ paths:
             application/json:
               schema:
                   type: string
+        '400':
+          $ref: "#/components/responses/default400"
+      x-amazon-apigateway-integration:
+        type: "aws"
+        credentials: 
+          Fn::GetAtt: apiRole.Arn
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        responses:
+          "200":
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "400":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "403":
+            statusCode: "403"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result')"
+        requestTemplates:
+          application/json: 
+            Fn::Join:
+              - ""
+              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                - Ref: getUserWorkflow
+                - "\"}"
+        passthroughBehavior: "when_no_match"
+
   /compliment/{category}:
     get:
       operationId: getComplimentByCategoryAndPersonalityType
@@ -176,6 +217,35 @@ paths:
             application/json:
               schema:
                 type: string
+        '400':
+          $ref: '#/components/responses/default400'
+      x-amazon-apigateway-integration:
+        type: "aws"
+        credentials: 
+          Fn::GetAtt: apiRole.Arn
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        responses:
+          "200":
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "400":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "403":
+            statusCode: "403"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result')"
+        requestTemplates:
+          application/json: 
+            Fn::Join:
+              - ""
+              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                - Ref: getComplimentByCategoryWorkflow
+                - "\"}"
+        passthroughBehavior: "when_no_match"
   /compliment/user/{username}:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
@@ -206,6 +276,33 @@ paths:
             application/json:
               schema:
                 type: string
+      x-amazon-apigateway-integration:
+        type: "aws"
+        credentials: 
+          Fn::GetAtt: apiRole.Arn
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        responses:
+          "200":
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "400":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "403":
+            statusCode: "403"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result')"
+        requestTemplates:
+          application/json: 
+            Fn::Join:
+              - ""
+              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                - Ref: getComplimentByUsernameWorkflow
+                - "\"}"
+        passthroughBehavior: "when_no_match"
   /category/user/{username}:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
@@ -229,6 +326,35 @@ paths:
             application/json:
               schema:
                   type: string
+        '400':
+          $ref: '#/components/responses/default400'
+      x-amazon-apigateway-integration:
+        type: "aws"
+        credentials: 
+          Fn::GetAtt: apiRole.Arn
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        responses:
+          "200":
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "400":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "403":
+            statusCode: "403"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result')"
+        requestTemplates:
+          application/json:
+            Fn::Join:
+              - ""
+              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                - Ref: getComplimentByUsernameWorkflow
+                - "\"}" 
+        passthroughBehavior: "when_no_match"
   /user/{username}/category/{category}:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
@@ -261,6 +387,33 @@ paths:
                 type: array
                 items:
                   type: string
+      x-amazon-apigateway-integration:
+        type: "aws"
+        credentials: 
+          Fn::GetAtt: apiRole.Arn
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        responses:
+          "200":
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "400":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "403":
+            statusCode: "403"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result')"
+        requestTemplates:
+          application/json:
+            Fn::Join: 
+              - ""
+              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                - Ref: postUserCategoryWorkflow
+                - "\"}"
+        passthroughBehavior: "when_no_match"
     delete:
       operationId: unsubscribeUserFromCategory
       tags:
@@ -289,4 +442,30 @@ paths:
                 type: array
                 items:
                   type: string
-  
+      x-amazon-apigateway-integration:
+        type: "aws"
+        credentials: 
+          Fn::GetAtt: apiRole.Arn
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        responses:
+          "200":
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "400":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result'))"
+          "403":
+            statusCode: "403"
+            responseTemplates:
+              application/json: "#set ($root=$input.path('$.result')"
+        requestTemplates:
+          application/json: 
+            Fn::Join: 
+              - ""
+              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+                - Ref: deleteUserCategoryWorkflow
+                - "\"}"
+        passthroughBehavior: "when_no_match"
