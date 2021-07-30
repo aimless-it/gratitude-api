@@ -32,8 +32,9 @@ exports.handler = async (event, context) => {
         for (const row of res.rows) {
             arr.push(...row)
         }
-        return arr;
+        event.result.data=arr;
     } finally {
         client.end();
     }
+    return event;
 }

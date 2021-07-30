@@ -36,11 +36,11 @@ exports.handler = async (event, context) => {
 
         
         const res = await client.query(query);
-        return res.rows[0][0];
+        event.result.data=res.rows[0][0];
     } catch(err) {
         console.error(err);
     } finally {
         client.end();
     }
-    return '';
+    return event;
 }

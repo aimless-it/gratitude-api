@@ -44,7 +44,7 @@ module.exports.handler = async (event, context) => {
         const res = await client.query(query)
         await client.query(process.env.NODE_ENV === 'prod' ? 'COMMIT' : 'ROLLBACK')
         const { given_name : givenName, family_name : familyName, email, phone_number : phoneNumber, ethnicity, dob, locale, gender} = res.rows[0];
-        return { 
+        event.result.data = { 
             username: user.username,
             givenName,
             familyName,
@@ -59,4 +59,5 @@ module.exports.handler = async (event, context) => {
     } finally {
         client.end()
     }
+    return event;
 }

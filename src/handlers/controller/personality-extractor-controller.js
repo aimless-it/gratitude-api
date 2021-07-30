@@ -25,6 +25,15 @@ exports.handler = async (event, context) => {
             }
         },
         meta: {},
-        user: {}
+        user: {},
+        result: {
+            statusCode: 200,
+            headers: {
+                'Access-Origin-Accept-Headers': '*',
+                'Access-Origin-Accept-Origin':'*',
+                'Access-Origin-Accept-Methods':'*',
+                'Content-Type':'application/json'
+            },
+        }
     }
 }

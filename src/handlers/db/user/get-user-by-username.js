@@ -26,7 +26,7 @@ exports.handler = async (event, context) => {
     try {
         const res = await client.query(query);
         const { username, given_name, family_name, email, phone_number, gender, ethnicity, dob, locale, sensing, judging, introversion, feeling } = res.rows[0];
-        return {
+        event.result.data = {
             username,
             givenName: given_name,
             familyName: family_name,
@@ -46,4 +46,5 @@ exports.handler = async (event, context) => {
     } finally {
         client.end();
     }
+    return event;
 }

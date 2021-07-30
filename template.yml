@@ -122,3 +122,6 @@ Outputs:
   bastionIp:
     Description: The ip address of the ec2 instance
     Value: !GetAtt DebugStack.Outputs.bastionAddress
+  restApiEndpoint:
+    Description: endpoint to reach api gw
+    Value: !GetAtt IntegrationsStack.Outputs.restApiUrl
