@@ -194,3 +194,11 @@ Outputs:
     Value: !GetAtt workflowRole.Arn
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+  DBSecretAdmin:
+    Value: !Ref secretDBMasterCreds
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
+  DBConnection:
+    Value: !Ref secretDBConnectionCreds
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
