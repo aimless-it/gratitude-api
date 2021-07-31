@@ -104,39 +104,6 @@ Resources:
       Tags:
         - Key: compliment
           Value: secretDBMasterCredentials
-  secretDBConnectionCreds:
-      Type: AWS::SecretsManager::Secret
-      Properties:
-          Description: RDS credentials stored for connecting
-          GenerateSecretString:
-            SecretStringTemplate: '{"username":"app_user"}'
-            GenerateStringKey: password
-          Name: secretDBConnectionCreds
-          Tags:
-            - Key: compliment
-              Value: secretDBConnectionCreds
-  # secretDBEndpoint:
-  #   Type: AWS::SecretsManager::Secret
-  #   Properties:
-  #     Description: Store RDS Endpoint information into secretes manager
-  #     SecretString: !Sub 
-  #       - '{"address": "${address}", "port":"${port}", "database":"${database}"}'
-  #       - {address: generate, port: 5432, database: postgres}
-  #     Name: secret-rds-endpoint
-  #     Tags:
-  #       - Key: compliment
-  #         Value: secret-rds-endpoint
-  # secretDBAppInfo:
-  #   Type: AWS::SecretsManager::Secret
-  #   Properties:
-  #     Description: database info to use for queries
-  #     SecretString: !Sub 
-  #       - '{"username":"${username}","password":"${password}", "schema":"${schema}"}'
-  #       - {username: app_user, password: app_password, schema: compliments}
-  #     Name: secretDBSchema
-  #     Tags:
-  #       - Key: compliment
-  #         Value: secretDBConnectionInformation
   workflowRole:
     Type: AWS::IAM::Role
     Properties:
@@ -198,7 +165,3 @@ Outputs:
     Value: !Ref secretDBMasterCreds
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
-  DBConnection:
-    Value: !Ref secretDBConnectionCreds
-    Export:
-      Name: !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"

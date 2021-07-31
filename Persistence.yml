@@ -67,6 +67,14 @@ Resources:
       Tags:
         - Key: compliment
           Value: user-tracking-db
+  CredentialAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Fn::ImportValue:
+          !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
+      TargetId: !Ref complimentRDS
+      TargetType: AWS::RDS::DBInstance
   # END: Persistence
 Outputs:
   complimentRdsExport:
