@@ -75,6 +75,33 @@ Resources:
           !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
       TargetId: !Ref complimentRDS
       TargetType: AWS::RDS::DBInstance
+  DBProxy:
+    Type: AWS::RDS::DBProxy
+    Properties:
+      DBProxyName: rdsProxy
+      EngineFamily: POSTGRESQL
+      IdleClientTimeout: 3
+      RequireTLS: false
+      RoleArn: 
+        Fn::ImportValue:
+          !Sub "gratitude:${AWS::Region}:${ENV}:DBProxyRole:Arn"
+      VpcSubnetIds:
+        - Fn::ImportValue:
+            !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
+      Auth:
+        - AuthScheme: SECRETS
+          IAMAuth: REQUIRED
+          SecretArn: 
+            Fn::ImportValue:
+              !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
+          UserName: db_user
+  ProxyConnection:
+    Type: AWS::RDS::DBProxyTargetGroup
+    Properties:
+      DBInstanceIdentifiers:
+        - !Ref complimentRDS
+      DBProxyName: !Ref DBProxy
+      TargetGroupName: default
   # END: Persistence
 Outputs:
   complimentRdsExport:

@@ -133,7 +133,38 @@ Resources:
                   # - !GetAtt personalityExtractorControllerFunction.Arn
                   # - !GetAtt usernameExtractorControllerFunction.Arn
                   # - !GetAtt userCategoryExtractorControllerFunction.Arn
-  
+  DBProxyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetResourcePolicy
+                    secretsmanager:GetSecretValue
+                    secretsmanager:DescribeSecret
+                    secretsmanager:ListSecretVersionIds
+                Resource:
+                  - !Ref secretDBMasterCreds
+          PolicyName: masterGetter
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetRandomPassword
+                    secretsmanager:ListSecrets
+                Resource: '*'
+          PolicyName: masterRandomizer
   # END: Security
 
 Outputs:
@@ -165,3 +196,7 @@ Outputs:
     Value: !Ref secretDBMasterCreds
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
+  ProxyRoleArn:
+    Value: !GetAtt DBProxyRole.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxyRole:Arn"
