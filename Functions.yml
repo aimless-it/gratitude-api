@@ -15,12 +15,12 @@ Globals:
           # "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
           # "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
           # "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
-          "PGUSER": "app_user"
+          "PGUSER": "db_user"
           "PGHOST": 
-            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:complimentRDS:Endpoint:Address"
+            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy:Endpoint"
           "PGPORT": "5432"
-          "PGPASSWORD": "app_password"
           "PGDATABASE": "postgres"
+          "REGION": !Sub "${AWS::Region}"
     VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:pubGroupId"

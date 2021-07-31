@@ -1,6 +1,4 @@
-const {Client} = require('pg')
-const client = new Client()
-
+const pool = require('../config')
 /*
 expected body:
     {
@@ -24,6 +22,7 @@ exports.handler = async (event, context) => {
         values: [user.username, user.category],
         rowMode: 'array'
     }
+    const client = await pool.connect();
     try{
         await client.query('BEGIN');
         const res = await client.query(query)
@@ -36,7 +35,7 @@ exports.handler = async (event, context) => {
             categories: arr
         }
     } finally {
-        client.end();
+        client.release();
     }
     return event;
 }

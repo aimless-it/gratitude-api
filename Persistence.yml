@@ -116,3 +116,7 @@ Outputs:
     Value: !Ref DBProxy
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy"
+  ProxyEndpoint:
+    Value: !GetAtt DBProxy.Endpoint
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy:Endpoint"
