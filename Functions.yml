@@ -36,7 +36,7 @@ Resources:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
+            Action: 'sts:AssumeRole'
       Policies:
         - PolicyName: XrayPolicy
           PolicyDocument:
@@ -44,11 +44,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - xray:PutTraceSegments
-                    xray:PutTelemetryRecords
-                    xray:GetSamplingRules
-                    xray:GetSamplingTargets
-                    xray:GetSamplingStatisticSummaries
+                  - 'xray:PutTraceSegments'
+                  - 'xray:PutTelemetryRecords'
+                  - 'xray:GetSamplingRules'
+                  - 'xray:GetSamplingTargets'
+                  - 'xray:GetSamplingStatisticSummaries'
                 Resource: '*'
         - PolicyName: ProxyAccessPolicy
           PolicyDocument:
@@ -56,7 +56,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - rds-db:connect
+                  - 'rds-db:connect'
                 Resource: 
                   Fn::Sub:
                     - "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:${db}/db_user"

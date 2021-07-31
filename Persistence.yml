@@ -34,13 +34,13 @@ Resources:
           - "{{resolve:secretsmanager:${master}::username}}"
           - master:
               Fn::ImportValue: 
-                !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
+                !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
       MasterUserPassword: 
         Fn::Sub:
           - "{{resolve:secretsmanager:${master}::password}}"
           - master: 
               Fn::ImportValue: 
-                !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
+                !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
       MultiAZ: false
       Port: "5432"
       PubliclyAccessible: true
@@ -72,7 +72,7 @@ Resources:
     Properties:
       SecretId:
         Fn::ImportValue:
-          !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
+          !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
       TargetId: !Ref complimentRDS
       TargetType: AWS::RDS::DBInstance
   DBProxy:

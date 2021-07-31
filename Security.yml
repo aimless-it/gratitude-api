@@ -100,7 +100,7 @@ Resources:
       GenerateSecretString: 
         SecretStringTemplate: '{"username":"db_user"}'
         GenerateStringKey: password
-      Name: secretDBMasterCredentials`
+      Name: secretDBMasterCredentials
       Tags:
         - Key: compliment
           Value: secretDBMasterCredentials
@@ -142,17 +142,17 @@ Resources:
           - Effect: Allow
             Principal:
               Service: rds.amazonaws.com
-            Action: sts:AssumeRole
+            Action: 'sts:AssumeRole'
       Policies:
         - PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
-                  - secretsmanager:GetResourcePolicy
-                    secretsmanager:GetSecretValue
-                    secretsmanager:DescribeSecret
-                    secretsmanager:ListSecretVersionIds
+                  - 'secretsmanager:GetResourcePolicy'
+                  - 'secretsmanager:GetSecretValue'
+                  - 'secretsmanager:DescribeSecret'
+                  - 'secretsmanager:ListSecretVersionIds'
                 Resource:
                   - !Ref secretDBMasterCreds
           PolicyName: masterGetter
@@ -161,8 +161,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - secretsmanager:GetRandomPassword
-                    secretsmanager:ListSecrets
+                  - 'secretsmanager:GetRandomPassword'
+                  - 'secretsmanager:ListSecrets'
                 Resource: '*'
           PolicyName: masterRandomizer
   # END: Security
