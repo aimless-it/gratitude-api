@@ -112,3 +112,7 @@ Outputs:
     Value: !GetAtt complimentRDS.Endpoint.Address
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:complimentRDS:Endpoint:Address"
+  ProxyReference:
+    Value: !Ref DBProxy
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy"
