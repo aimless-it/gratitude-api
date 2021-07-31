@@ -93,17 +93,28 @@ Resources:
           FromPort: 0
           ToPort: 55000
           CidrIp: 0.0.0.0/0
-  # secretDBMasterCreds:
-  #   Type: AWS::SecretsManager::Secret
-  #   Properties:
-  #     Description: Store RDS username information into secrets manager
-  #     SecretString: !Sub 
-  #       - '{"username": "${username}", "password": "${password}"}'
-  #       - { username: app_user, password: app_password}
-  #     Name: secretDBMasterCredentials`
-  #     Tags:
-  #       - Key: compliment
-  #         Value: secretDBMasterCredentials
+  secretDBMasterCreds:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Store RDS username information into secrets manager
+      GenerateSecretString: 
+        SecretStringTemplate: '{"username":"db_user"}'
+        GenerateStringKey: password
+      Name: secretDBMasterCredentials`
+      Tags:
+        - Key: compliment
+          Value: secretDBMasterCredentials
+  secretDBConnectionCreds:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+          Description: RDS credentials stored for connecting
+          GenerateSecretString:
+            SecretStringTemplate: '{"username":"app_user"}'
+            GenerateStringKey: password
+          Name: secretDBConnectionCreds
+          Tags:
+            - Key: compliment
+              Value: secretDBConnectionCreds
   # secretDBEndpoint:
   #   Type: AWS::SecretsManager::Secret
   #   Properties:
