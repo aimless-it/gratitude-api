@@ -12,21 +12,22 @@ expected request:
  */
 exports.handler = async (event, context) => {
     const {username, category} = event.pathParameters;
-    return {
+    event.body = {
         query: {},
         meta: {},
         user: {
             username,
             category
         },
-        result: {
-            statusCode: 200,
-            headers: {
-                'Access-Origin-Accept-Headers': '*',
-                'Access-Origin-Accept-Origin':'*',
-                'Access-Origin-Accept-Methods':'*',
-                'Content-Type':'application/json'
-            },
-        }
+        
+    }
+    event.result = {
+        statusCode: 200,
+        headers: {
+            'Access-Origin-Accept-Headers': '*',
+            'Access-Origin-Accept-Origin':'*',
+            'Access-Origin-Accept-Methods':'*',
+            'Content-Type':'application/json'
+        },
     }
 }

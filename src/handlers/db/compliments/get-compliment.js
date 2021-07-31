@@ -18,7 +18,7 @@ expected body:
 exports.handler = async (event, context) => {
   await client.connect();
 
-  const { user } = JSON.parse(event.body);
+  const { user } = event.body;
   const query = {
     text: "select getComplimentByUsername($1)",
     values: [user.username],
@@ -27,7 +27,9 @@ exports.handler = async (event, context) => {
 
   try {
     const res = await client.query(query);
-    event.result.data = res.rows[0][0];
+    event.result.body = {
+      compliment: res.rows[0][0]
+    }
   } finally {
     await client.end();
   }

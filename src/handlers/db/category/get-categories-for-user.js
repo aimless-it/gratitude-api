@@ -20,7 +20,7 @@ expected body:
  */
 exports.handler = async (event, context) => {
     await client.connect();
-    const { user } = JSON.parse(event.body);
+    const { user } = event.body;
     const query = {
         text: "select getAllCategoryByUsername($1)",
         values: [user.username],
@@ -33,7 +33,9 @@ exports.handler = async (event, context) => {
         arr.push(...row);
     }
     client.end();
-    event.result.data = arr;
+    event.result.body = {
+        categories: arr
+    }
     return event;
     
 }

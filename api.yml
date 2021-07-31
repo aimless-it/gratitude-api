@@ -169,12 +169,32 @@ paths:
         credentials: 
           Fn::GetAtt: apiRole.Arn
         httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartSyncExecution"
         responses:
           "200":
             statusCode: "200"
             responseTemplates:
-              application/json: "#set ($root=$input.path('$.result'))"
+              application/json: >
+                '#set ($root=$input.path('$.result.body'))
+                {
+                  "username": "$root.username",
+                  "email": "$root.email",
+                  "givenName": "$root.givenName",
+                  "familyName": "$root.familyName",
+                  "dob": "$root.dob","
+                  "ethnicity": $root.ethnicity",
+                  "gender": "$root.ethnicity",
+                  "locale": "$root.locale",
+                  "phoneNumber": "$root.phoneNumber",
+                  "personalityType": {
+                    "sensing": "$root.personalityType.sensing",
+                    "introversion":"$root.personalityType.introversion",
+                    "judging": "$root.personalityType.judging",
+                    "feeling": "$root.personalityType.feeling"
+                  }
+                }
+                '
+
           "400":
             statusCode: "400"
             responseTemplates:
@@ -187,7 +207,10 @@ paths:
           application/json: 
             Fn::Join:
               - ""
-              - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
+              - - >
+                "{\"input\": {
+                  "username":"$input.params('username')"
+                },\"stateMachineArn\": \""
                 - Ref: getUserWorkflow
                 - "\"}"
         passthroughBehavior: "when_no_match"
@@ -224,12 +247,17 @@ paths:
         credentials: 
           Fn::GetAtt: apiRole.Arn
         httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartSyncExecution"
         responses:
           "200":
             statusCode: "200"
             responseTemplates:
-              application/json: "#set ($root=$input.path('$.result'))"
+              application/json: >
+                '#set ($root=$input.path('$.result.body'))
+                {
+                  "compliment": "$root.compliment"
+                }
+                '
           "400":
             statusCode: "400"
             responseTemplates:
@@ -281,12 +309,17 @@ paths:
         credentials: 
           Fn::GetAtt: apiRole.Arn
         httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartSyncExecution"
         responses:
           "200":
             statusCode: "200"
             responseTemplates:
-              application/json: "#set ($root=$input.path('$.result'))"
+              application/json: >
+                '#set ($root=$input.path('$.result.body'))
+                {
+                  "compliment":"$root.compliment"
+                }
+                '
           "400":
             statusCode: "400"
             responseTemplates:
@@ -317,9 +350,12 @@ paths:
           content:
             application/json:    
               schema:
-                type: array
-                items:
-                  type: string
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      type: string
         '403':
           description: Error due to authorization
           content:
@@ -333,12 +369,22 @@ paths:
         credentials: 
           Fn::GetAtt: apiRole.Arn
         httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartSyncExecution"
         responses:
           "200":
             statusCode: "200"
             responseTemplates:
-              application/json: "#set ($root=$input.path('$.result'))"
+              application/json: >
+                '#set ($root=$input.path('$.result.body'))
+                {
+                  "categories" : [
+                  #foreach($elem in $root.categories)
+                  "$elem"
+                  #if($foreach.hasNext), #end
+                  #end
+                  ]
+                }
+                '
           "400":
             statusCode: "400"
             responseTemplates:
@@ -352,7 +398,7 @@ paths:
             Fn::Join:
               - ""
               - - "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \""
-                - Ref: getComplimentByUsernameWorkflow
+                - Ref: getCategoriesForUserWorkflow
                 - "\"}" 
         passthroughBehavior: "when_no_match"
   /user/{username}/category/{category}:
@@ -370,9 +416,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      type: string
         '403':
           description: Error due to authorization
           content:
@@ -384,20 +433,27 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                type: string
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
           Fn::GetAtt: apiRole.Arn
         httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartSyncExecution"
         responses:
           "200":
             statusCode: "200"
             responseTemplates:
-              application/json: "#set ($root=$input.path('$.result'))"
+              application/json: >
+                '#set ($root=$input.path('$.result.body'))
+                {
+                  "categories" : [
+                    #foreach($elem in $root.categories)
+                      "$elem"
+                    #if(#foreach.hasNext), #end
+                  ]
+                }
+                '
           "400":
             statusCode: "400"
             responseTemplates:
@@ -425,9 +481,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      type: string
         '403':
           description: Error due to authorization
           content:
@@ -447,12 +506,22 @@ paths:
         credentials: 
           Fn::GetAtt: apiRole.Arn
         httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartSyncExecution"
         responses:
           "200":
             statusCode: "200"
             responseTemplates:
-              application/json: "#set ($root=$input.path('$.result'))"
+              application/json: >
+                '#set ($root=$input.path('$.result.body'))
+                {
+                  "categories" : [
+                  #foreach($elem in $root.categories)
+                    "$elem"
+                  #if($foreach.hasNext), #end
+                  #end
+                  ]
+                }
+                '
           "400":
             statusCode: "400"
             responseTemplates:

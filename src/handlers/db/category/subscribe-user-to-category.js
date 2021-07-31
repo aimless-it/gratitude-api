@@ -18,7 +18,7 @@ expected body:
  */
 exports.handler = async (event, context) => {
     await client.connect();
-    const { user } = JSON.parse(event.body);
+    const { user } = event.body;
     const query = {
         text: "select addCategoryToUserPreferences($1, $2)",
         values: [user.username, user.category],
@@ -33,7 +33,9 @@ exports.handler = async (event, context) => {
         for (const row of res.rows) {
             arr.push(...row)
         }
-        event.result.data = arr;
+        event.result.body = {
+            compliments: arr
+        }
     } finally {
         client.end();
     }

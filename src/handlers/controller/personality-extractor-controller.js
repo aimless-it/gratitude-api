@@ -14,7 +14,7 @@ expected request:
 exports.handler = async (event, context) => {
     const {category} = event.pathParameters;
     const {feeling, introversion, judging, sensing} = event.queryStringParameters;
-    return {
+    event.body = {
         query: {
             category,
             personalityType: {
@@ -26,14 +26,15 @@ exports.handler = async (event, context) => {
         },
         meta: {},
         user: {},
-        result: {
-            statusCode: 200,
-            headers: {
-                'Access-Origin-Accept-Headers': '*',
-                'Access-Origin-Accept-Origin':'*',
-                'Access-Origin-Accept-Methods':'*',
-                'Content-Type':'application/json'
-            },
-        }
+        
+    }
+    event.result = {
+        statusCode: 200,
+        headers: {
+            'Access-Origin-Accept-Headers': '*',
+            'Access-Origin-Accept-Origin':'*',
+            'Access-Origin-Accept-Methods':'*',
+            'Content-Type':'application/json'
+        },
     }
 }

@@ -24,7 +24,7 @@ Resources:
           PolicyDocument:
             Statement:
               - Effect: Allow
-                Action: states:StartExecution
+                Action: states:StartSyncExecution
                 Resource:
                   - '*'
   apiGW:
@@ -73,6 +73,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getComplimentByCategoryWorkflow:
@@ -100,6 +101,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getComplimentByUsernameWorkflow:
@@ -127,6 +129,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getCategoriesForUserWorkflow:
@@ -154,6 +157,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   postUserCategoryWorkflow:
@@ -181,6 +185,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   deleteUserCategoryWorkflow:
@@ -208,6 +213,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
 Outputs:

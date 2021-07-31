@@ -18,7 +18,7 @@ expected body:
 exports.handler = async (event, context) => {
     await client.connect()
 
-    const { user } = JSON.parse(event.body)
+    const { user } = event.body;
     const query = {
         text: "select * from compliment_user u join personality_type p on u.personality_type_id = p.id where u.username=$1 ",
         values: [user.username]
@@ -26,7 +26,7 @@ exports.handler = async (event, context) => {
     try {
         const res = await client.query(query);
         const { username, given_name, family_name, email, phone_number, gender, ethnicity, dob, locale, sensing, judging, introversion, feeling } = res.rows[0];
-        event.result.data = {
+        event.result.body = {
             username,
             givenName: given_name,
             familyName: family_name,

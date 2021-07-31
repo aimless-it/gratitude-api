@@ -12,21 +12,24 @@ expected request:
  * @returns The body for the next lambda
  */
 exports.handler = async (event, context) => {
-    const {username} = event.pathParameters;
-    return {
-        query:{},
+    console.log(`it has entered the username controller and the event is: ${JSON.stringify(event)}`)
+    const { username } = event;
+    event.body = {
+        query: {},
         meta: {},
         user: {
             username
         },
-        result: {
-            statusCode: 200,
-            headers: {
-                'Access-Origin-Accept-Headers': '*',
-                'Access-Origin-Accept-Origin':'*',
-                'Access-Origin-Accept-Methods':'*',
-                'Content-Type':'application/json'
-            },
-        }
+        
     }
+    event.result = {
+        statusCode: 200,
+        headers: {
+            'Access-Origin-Accept-Headers': '*',
+            'Access-Origin-Accept-Origin': '*',
+            'Access-Origin-Accept-Methods': '*',
+            'Content-Type': 'application/json'
+        },
+    }
+    return event;
 }

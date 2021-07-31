@@ -8,13 +8,14 @@ describe('It should return a compliment based off the users preferences ', () =>
         };
         const answer = 'you are good';
         const event = {
-            body: JSON.stringify({
+            body: {
                 meta: {},
                 query: {},
                 user
-            })
+            },
+            result: {}
         };
         const res = await getUserComplimentFunction(event);
-        expect(res).toEqual(answer);
+        expect(res.result.data).toEqual(answer);
     })
 })
