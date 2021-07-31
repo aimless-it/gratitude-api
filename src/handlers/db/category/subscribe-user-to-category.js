@@ -1,5 +1,4 @@
-const { Client } = require('pg')
-const client = new Client();
+const pool = require('../config')
 /*
 expected body:
     {
@@ -17,14 +16,13 @@ expected body:
  * @returns An array of Strings representing the categories for a user.
  */
 exports.handler = async (event, context) => {
-    await client.connect();
     const { user } = event.body;
     const query = {
         text: "select addCategoryToUserPreferences($1, $2)",
         values: [user.username, user.category],
         rowMode: 'array'
     };
-
+    const client = await pool.connect();
     try {
         client.query('BEGIN');
         const res = await client.query(query)
@@ -37,7 +35,7 @@ exports.handler = async (event, context) => {
             compliments: arr
         }
     } finally {
-        client.end();
+        client.release();
     }
     return event;
 }

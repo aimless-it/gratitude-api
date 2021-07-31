@@ -7,15 +7,6 @@ Parameters:
     Type: String
     Description:  The stage name of the environment
     Default: dev
-  dbMasterUsername:
-    Type: String
-    Description: The master username for the rds
-    Default: db_user
-  dbMasterPassword:
-    Type: String
-    Description: The master Password for the rds
-    Default: password
-    NoEcho: true
   az:
     Type: AWS::EC2::AvailabilityZone::Name
     Description: The availability zone for the rds to reside in for non multi az deployment
@@ -38,8 +29,18 @@ Resources:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:RDSSubnetGroup"
       Engine: postgres
       EngineVersion: "12.5"
-      MasterUsername: !Ref dbMasterUsername
-      MasterUserPassword: !Ref dbMasterPassword
+      MasterUsername: 
+        Fn::Sub: 
+          - "{{resolve:secretsmanager:${master}::username}}"
+          - master:
+              Fn::ImportValue: 
+                !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
+      MasterUserPassword: 
+        Fn::Sub:
+          - "{{resolve:secretsmanager:${master}::password}}"
+          - master: 
+              Fn::ImportValue: 
+                !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
       MultiAZ: false
       Port: "5432"
       PubliclyAccessible: true
@@ -66,6 +67,41 @@ Resources:
       Tags:
         - Key: compliment
           Value: user-tracking-db
+  CredentialAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Fn::ImportValue:
+          !Sub "gratitude:${AWS::Region}:${ENV}:secretDBConnectionCreds"
+      TargetId: !Ref complimentRDS
+      TargetType: AWS::RDS::DBInstance
+  DBProxy:
+    Type: AWS::RDS::DBProxy
+    Properties:
+      DBProxyName: rdsProxy
+      EngineFamily: POSTGRESQL
+      IdleClientTimeout: 3
+      RequireTLS: false
+      RoleArn: 
+        Fn::ImportValue:
+          !Sub "gratitude:${AWS::Region}:${ENV}:DBProxyRole:Arn"
+      VpcSubnetIds:
+        - Fn::ImportValue:
+            !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
+      Auth:
+        - AuthScheme: SECRETS
+          IAMAuth: REQUIRED
+          SecretArn: 
+            Fn::ImportValue:
+              !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
+          UserName: db_user
+  ProxyConnection:
+    Type: AWS::RDS::DBProxyTargetGroup
+    Properties:
+      DBInstanceIdentifiers:
+        - !Ref complimentRDS
+      DBProxyName: !Ref DBProxy
+      TargetGroupName: default
   # END: Persistence
 Outputs:
   complimentRdsExport:
@@ -76,3 +112,11 @@ Outputs:
     Value: !GetAtt complimentRDS.Endpoint.Address
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:complimentRDS:Endpoint:Address"
+  ProxyReference:
+    Value: !Ref DBProxy
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy"
+  ProxyEndpoint:
+    Value: !GetAtt DBProxy.Endpoint
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy:Endpoint"
