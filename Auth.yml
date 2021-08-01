@@ -9,15 +9,33 @@ Parameters:
 
 Resources:
   # BEGIN: Authentication
+  AdminAuthRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: cognito-idp.amazonaws.com
+      Policies:
+        - PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action: '*'
+                  Resource: '*'
+          PolicyName: AdminAuthGroupRole
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      AccountRecoverySetting:
-        RecoveryMechanisms:
-          - Name: verified_phone_number
-            Priority: 1
-      AutoVerifiedAttributes:
-        - phone_number
+      # AccountRecoverySetting:
+      #   RecoveryMechanisms:
+      #     - Name: verified_phone_number
+      #       Priority: 1
+      # AutoVerifiedAttributes:
+      #   - phone_number
       Policies:
         PasswordPolicy:
           MinimumLength: 6
@@ -58,17 +76,85 @@ Resources:
       LambdaConfig:
         PostConfirmation:
           Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
-      SmsConfiguration:
-        ExternalId: PNVerifier
-        SnsCallerArn: !GetAtt SmsRole.Arn #verify this is correct
-
+      # SmsConfiguration:
+      #   ExternalId: PNVerifier
+      #   SnsCallerArn: !GetAtt SmsRole.Arn #verify this is correct
+  GratitudeClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AccessTokenValidity: 180
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - openid
+        - aws.cognito.signin.user.admin
+        - email
+      CallbackURLs:
+        - gratitude://home
+        - gratitude://signin
+      ClientName: gratitude
+      DefaultRedirectURI: gratitude://home
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      IdTokenValidity: 180
+      LogoutURLs:
+        - gratitude://logout
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - race
+        - birthdate
+        - family_name
+        - given_name
+        - gender
+        - username
+        - zoneinfo
+        - nickname
+        - phone_number
+        - locale
+      WriteAttributes:
+        - birthdate
+        - email
+        - family_name
+        - given_name
+        - nickname
+        - phone_number
+        - zoneinfo
+        - race
+        - locale
+        - gender
+      RefreshTokenValidity: 365
+      SupportedIdentityProviders:
+        - COGNITO
+        - Facebook
+        - Google
+      TokenValidityUnits:
+        AccessToken: days
+        IdToken: days
+        RefreshToken: days
+      UserPoolId: !Ref UserPool
+  AdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: Allowed users to access admin features
+      GroupName: Admin
+      Precedence: 0
+      UserPoolId: !Ref UserPool
+      RoleArn: !GetAtt AdminAuthRole.Arn
+  StandardGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: Allowed users to access usual app features
+      GroupName: Standard
+      Precedence: 1
+      UserPoolId: !Ref UserPool
   SnsSmsTopic:
     Type: AWS::SNS::Topic
     Properties:
       DisplayName: "Phone Number Verifier"
       FifoTopic: false
       TopicName: snsTopic
-
   # SnsSmsSubscription:
   #   Type: AWS::SNS::Subscription
   #   Properties:
