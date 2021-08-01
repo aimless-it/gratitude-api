@@ -20,7 +20,7 @@ exports.handler = async (event, context) => {
         text: "select * from compliment_user u join personality_type p on u.personality_type_id = p.id where u.username=$1 ",
         values: [user.username]
     }
-    const res = await pool.query(query);
+    const res = await pool().query(query);
     const { username, given_name, family_name, email, phone_number, gender, ethnicity, dob, locale, sensing, judging, introversion, feeling } = res.rows[0];
     event.result.body = {
         username,

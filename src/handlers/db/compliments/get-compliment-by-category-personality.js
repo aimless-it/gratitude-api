@@ -29,7 +29,7 @@ exports.handler = async (event, context) => {
         values: [personalityType.sensing, personalityType.introversion, personalityType.feeling, personalityType.judging, category],
         rowMode: 'array'
     }
-    const res = await pool.query(query);
+    const res = await pool().query(query);
     event.result.body = {
         compliment: res.rows[0][0]
     }

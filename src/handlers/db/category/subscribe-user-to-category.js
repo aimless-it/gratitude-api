@@ -22,7 +22,7 @@ exports.handler = async (event, context) => {
         values: [user.username, user.category],
         rowMode: 'array'
     };
-    const client = await pool.connect();
+    const client = await pool().connect();
     try {
         client.query('BEGIN');
         const res = await client.query(query)
@@ -32,7 +32,7 @@ exports.handler = async (event, context) => {
             arr.push(...row)
         }
         event.result.body = {
-            compliments: arr
+            categories: arr
         }
     } finally {
         client.release();

@@ -78,7 +78,7 @@ Resources:
       Description: A lambda to use a trigger for Cognito sign up
       FunctionName: createUserCognitoTrigger
       MemorySize: 128
-      Timeout: 5
+      Timeout: 15
       Tracing: Active
       Role: !GetAtt LambdaRole.Arn
       Tags:
@@ -96,7 +96,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Role: !GetAtt LambdaRole.Arn
-      Timeout: 5
+      Timeout: 15
       Tags:
         compliment: get categories function
   removeCategoryFunction:
@@ -112,7 +112,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Role: !GetAtt LambdaRole.Arn
-      Timeout: 5
+      Timeout: 15
       Tags:
         compliment: remove category function
   addCategoryFunction:
@@ -128,7 +128,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Role: !GetAtt LambdaRole.Arn
-      Timeout: 5
+      Timeout: 15
       Tags:
         compliment: addCategoryFunction
   getRandomUserComplimentFunction:
@@ -144,7 +144,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Role: !GetAtt LambdaRole.Arn
-      Timeout: 5
+      Timeout: 15
       Tags:
         compliment: get compliment function
   getRandomComplimentFunction:
@@ -160,7 +160,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Role: !GetAtt LambdaRole.Arn
-      Timeout: 5
+      Timeout: 15
       Tags:
         compliment: get random compliment by category and personality type function
   getUserFunction:
@@ -176,7 +176,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Role: !GetAtt LambdaRole.Arn
-      Timeout: 5
+      Timeout: 15
       Tags:
         compliment: get user by username function
   personalityExtractorControllerFunction:

@@ -91,7 +91,7 @@ Resources:
         - Fn::ImportValue:
             !Sub "gratitude:${AWS::Region}:${ENV}:subnet2"
       VpcSecurityGroupIds:
-        - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:pubGroupId"
+        - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:dbGroupId"
       Auth:
         - AuthScheme: SECRETS
           IAMAuth: REQUIRED

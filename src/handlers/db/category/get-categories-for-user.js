@@ -23,7 +23,7 @@ exports.handler = async (event, context) => {
         rowMode: 'array'
     };
 
-    const res = await pool.query(query);
+    const res = await pool().query(query);
     const arr = [];
     for (const row of res.rows) {
         arr.push(...row);

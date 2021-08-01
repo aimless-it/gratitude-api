@@ -11,7 +11,7 @@ expected request:
  * @returns The body for the next lambda
  */
 exports.handler = async (event, context) => {
-    const {username, category} = event.pathParameters;
+    const {username, category} = event;
     event.body = {
         query: {},
         meta: {},
@@ -30,4 +30,5 @@ exports.handler = async (event, context) => {
             'Content-Type':'application/json'
         },
     }
+    return event;
 }

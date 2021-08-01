@@ -22,7 +22,7 @@ exports.handler = async (event, context) => {
     values: [user.username],
     rowMode: 'array'
   };
-  const res = await pool.query(query);
+  const res = await pool().query(query);
   event.result.body = {
     compliment: res.rows[0][0]
   }

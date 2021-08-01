@@ -22,7 +22,7 @@ const pool = require('../config')
  * @returns The newly updated object in the db
  */
 module.exports.handler = async (event, context) => {
-    const { user } = event.body;
+    const { user } = event;
     const query = {
         text: "select * from updateUserByUsername($1, $2, $3, $4, $5, $6, $7, $8, $9)",
         values: [
@@ -37,7 +37,7 @@ module.exports.handler = async (event, context) => {
             user.locale || null
         ],
     };
-    const client = await pool.connect();
+    const client = await pool().connect();
     try {
         await client.query('BEGIN')
         const res = await client.query(query)

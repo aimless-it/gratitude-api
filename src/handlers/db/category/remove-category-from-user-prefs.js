@@ -15,14 +15,13 @@ expected body:
  * @returns An array of Strings representing the categories for a user.
  */
 exports.handler = async (event, context) => {
-    await client.connect();
     const { user } = event.body;
     const query = {
         text: "select removeCategoryFromUserPreferences($1, $2)",
         values: [user.username, user.category],
         rowMode: 'array'
     }
-    const client = await pool.connect();
+    const client = await pool().connect();
     try{
         await client.query('BEGIN');
         const res = await client.query(query)

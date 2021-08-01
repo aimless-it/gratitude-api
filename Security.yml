@@ -80,7 +80,7 @@ Resources:
       GroupDescription: Security Group for rds instance
       VpcId: !Ref VPCId
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref publicGroup
+        - CidrIp: 10.0.0.0/16
           FromPort: 5432
           ToPort: 5432
           IpProtocol: tcp

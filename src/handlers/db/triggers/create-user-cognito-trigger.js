@@ -45,7 +45,7 @@ exports.handler = async (event, context) => {
             attributes.locale || 'EN-US'
         ]
     }
-    const client = await pool.connect();
+    const client = await pool().connect();
     try{
         await client.query('BEGIN')
         await client.query(query);
