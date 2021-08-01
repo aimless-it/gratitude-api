@@ -17,7 +17,16 @@ describe('it should return the proper construction of object when ', () => {
         expect(res).toEqual({
             user,
             query:{},
-            meta:{}
+            meta:{},
+            result: {
+                statusCode: 200,
+                headers: {
+                    'Access-Origin-Accept-Headers': '*',
+                    'Access-Origin-Accept-Origin': '*',
+                    'Access-Origin-Accept-Methods': '*',
+                    'Content-Type': 'application/json'
+                },
+            }
         })
     })
 })

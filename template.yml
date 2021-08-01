@@ -26,16 +26,6 @@ Transform:
 # Metadata:
 
 Parameters:
-  DBUsername:
-    Default: db_user
-    Description: master username for the RDS
-    Type: String
-    NoEcho: true
-  DBPassword:
-    Default: password
-    Description: master password for the RDS
-    Type: String
-    NoEcho: true
   ENV:
     Default: dev
     Description: The stage name of the environment
@@ -73,8 +63,6 @@ Resources:
       Location: Persistence.yml
       Parameters:
         ENV: !Ref ENV
-        dbMasterUsername: !Ref DBUsername
-        dbMasterPassword: !Ref DBPassword
         az: !FindInMap [ AvailabilityZones, !Ref AWS::Region, 'a' ]
 
   FunctionStack:
@@ -122,3 +110,6 @@ Outputs:
   bastionIp:
     Description: The ip address of the ec2 instance
     Value: !GetAtt DebugStack.Outputs.bastionAddress
+  restApiEndpoint:
+    Description: endpoint to reach api gw
+    Value: !GetAtt IntegrationsStack.Outputs.restApiUrl

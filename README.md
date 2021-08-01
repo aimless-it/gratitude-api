@@ -7,17 +7,17 @@
 - [ ] Create Lambda for Stream
 - [X] Create openapi doc for api
 - [X] iam roles for lambda where necessary
-- [ ] extract template for nesting and modularization [ Began, but not implementing due to complexity and time constraint ]
-- [ ] Create userpool sms verification
+- [X] extract template for nesting and modularization
+- [X] Create userpool sms verification
 - [X] Create userpool api key
 - [ ] Finish configuring app user pool
 - [ ] Connect cognito to api for auth
-- [ ] Create RDS Lambda proxy for functions to interact with db
+- [X] Create RDS Lambda proxy for functions to interact with db
 
 ## TODO: future
 - [ ] Create buildspec.yml for ci/cd
-- [ ] Create tests for lambdas
-- [ ] fully configure xray
+- [X] Create tests for lambdas
+- [X] fully configure xray
 - [ ] Route53 for domain and https
 
 ## Environment configuration

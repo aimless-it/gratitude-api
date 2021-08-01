@@ -14,13 +14,14 @@ describe('It should get a random compliment from the db based on ', () => {
             category: 'mad'
         };
         const event = {
-            body: JSON.stringify({
+            body: {
                 query,
                 meta: {},
                 user: {}
-            })
+            },
+            result: {}
         };
             const res = await getComplimentFunction(event);
-            expect(res).toEqual(answer);
+            expect(res.result.data).toEqual(answer);
     })
 })

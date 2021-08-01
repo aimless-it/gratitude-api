@@ -1,6 +1,4 @@
-const {Client} = require('pg')
-const client = new Client()
-
+const pool = require('../config')
 /*
 expected body from cognito:
     {
@@ -29,7 +27,6 @@ expected body from cognito:
  * @returns The event for cognito to continue auth flow.
  */
 exports.handler = async (event, context) => {
-    await client.connect();
     const body = JSON.parse(event.body);
     const attributes = body.request.userAttributes;
     const query = {
@@ -48,7 +45,7 @@ exports.handler = async (event, context) => {
             attributes.locale || 'EN-US'
         ]
     }
-
+    const client = await pool().connect();
     try{
         await client.query('BEGIN')
         await client.query(query);
@@ -71,7 +68,7 @@ exports.handler = async (event, context) => {
     } catch(err) {
         console.error(`error saving to db on ${Date.now()}: ${err}`);
     } finally {
-        client.end();
+        client.release();
     }
 
     return event;

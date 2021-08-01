@@ -24,28 +24,25 @@ Resources:
           PolicyDocument:
             Statement:
               - Effect: Allow
-                Action: states:StartExecution
+                Action: states:StartSyncExecution
                 Resource:
                   - '*'
   apiGW:
     Type: AWS::Serverless::Api
     Properties:
-      # Auth:
-      #   Authorizers:
-      #     CognitoAuth:
-      #       UserPoolArn:
-      #         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
-      #       AuthType: COGNITO_USER_POOLS
-      #   ApiKeyRequired: false
-      #   AddDefaultAuthorizerToCorsPreflight: false
+      TracingEnabled: true
+      Auth:
+        Authorizers:
+          CognitoAuth:
+            UserPoolArn: 
+              Fn::ImportValue: 
+                !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
+            AuthType: COGNITO_USER_POOLS
+        ApiKeyRequired: false
+        AddDefaultAuthorizerToCorsPreflight: false
       Description: Api Gateway for gratitude api
       OpenApiVersion: 3.0.3
       StageName: !Ref ENV
-      # DefinitionBody:
-      #   Fn::Transform:
-      #     Name: AWS::Include
-      #     Parameters:
-      #       Location: newGW.yml
       DefinitionBody:
         Fn::Transform:
           Name: 'AWS::Include'
@@ -66,7 +63,7 @@ Resources:
           controller:
             Type: Task
             Resource:
-              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
             Next: service
           service:
             Type: Task
@@ -76,6 +73,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getComplimentByCategoryWorkflow:
@@ -103,6 +101,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getComplimentByUsernameWorkflow:
@@ -130,6 +129,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   getCategoriesForUserWorkflow:
@@ -157,6 +157,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   postUserCategoryWorkflow:
@@ -184,6 +185,7 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
   deleteUserCategoryWorkflow:
@@ -211,5 +213,10 @@ Resources:
         StartAt: controller
       Tracing:
         Enabled: true
+      Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+Outputs:
+  restApiUrl:
+    Description: The url of the rest api
+    Value: !Sub "https://${apiGW}.execute-api.${AWS::Region}.amazonaws.com/${ENV}/"

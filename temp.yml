@@ -204,9 +204,14 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Sub:
-              >
-                {"input": "{\"username\":\"$input.params('username')\"}","stateMachineArn": "${getUserWorkflow}"}
+            Fn::Join:
+              - ""
+              - - >
+                  {
+                    "input": "{\"username\":\"$input.params('username')\"}",
+                    "stateMachineArn": "
+                - Ref: getUserWorkflow
+                - \"}
         passthroughBehavior: "when_no_match"
 
   /compliment/{category}:
@@ -260,9 +265,19 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Sub:
-              >
-                {"input": "{\"category\":\"$input.params('category')\", \"sensing\":\"$input.params('sensing')\", \"judging\":\"$input.params('judging')\",\"introversion\":\"$input.params('introversion')\",\"feeling\":\"$input.params('feeling')\"}","stateMachineArn": "${getComplimentByCategoryWorkflow}"}
+            Fn::Join:
+              - ""
+              - - >
+                    {
+                      "input": "{\"category\":\"$input.params('category')\", 
+                      \"sensing\":\"$input.params('sensing')\", 
+                      \"judging\":\"$input.params('judging')\",
+                      \"introversion\":\"$input.params('introversion')\",
+                      \"feeling\":\"$input.params('feeling')\"
+                    }",
+                    "stateMachineArn": "
+                - Ref: getComplimentByCategoryWorkflow
+                - \"}
         passthroughBehavior: "when_no_match"
   /compliment/user/{username}:
     parameters:
@@ -318,9 +333,14 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Sub:
-              >
-                {"input": "{\"username\":\"$input.params('username')\"}","stateMachineArn": "${getComplimentByUsernameWorkflow}"}
+            Fn::Join:
+              - ""
+              - - >
+                    {
+                    "input": "{\"username\":\"$input.params('username')\"}",
+                    "stateMachineArn": "
+                - Ref: getComplimentByUsernameWorkflow
+                - \"}
         passthroughBehavior: "when_no_match"
   /category/user/{username}:
     parameters:
@@ -380,9 +400,15 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json:
-            Fn::Sub:
-              >
-                {"input": "{\"username\":\"$input.params('username')\"}","stateMachineArn": "${getCategoriesForUserWorkflow}"}
+            Fn::Join:
+              - ""
+              - - >
+                    {
+                      "input": "{\"username\":\"$input.params('username')\"
+                    }",
+                    "stateMachineArn": "
+                - Ref: getCategoriesForUserWorkflow
+                - \"}
         passthroughBehavior: "when_no_match"
   /user/{username}/category/{category}:
     parameters:
@@ -428,14 +454,14 @@ paths:
             statusCode: "200"
             responseTemplates:
               application/json: >
-                #set ($rootInput = $util.parseJson($input.path('$.output'))) 
-                #set ($root = $rootInput.result.body) 
-                { "categories" : [ 
-                #foreach($elem in $root.categories) 
-                "$elem" 
-                #if($foreach.hasNext), #end 
-                #end 
-                ] 
+                #set ($root=$input.path('$.result.body')) 
+                { 
+                  "categories" : 
+                    [ 
+                      #foreach($elem in $root.categories) 
+                      "$elem" 
+                      #if(#foreach.hasNext), #end 
+                    ] 
                 }
           "400":
             statusCode: "400"
@@ -447,9 +473,16 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json:
-            Fn::Sub:
-              >
-                {"input": "{\"username\":\"$input.params('username')\",\"category\":\"$input.params('category')\"}","stateMachineArn": "${postUserCategoryWorkflow}"}
+            Fn::Join: 
+              - ""
+              - - >
+                    {
+                      "input": "{\"username\":\"$input.params('username')\",
+                      \"category\":\"$input.params('category')\"
+                      }",
+                      "stateMachineArn": "
+                - Ref: postUserCategoryWorkflow
+                - \"}
         passthroughBehavior: "when_no_match"
     delete:
       operationId: unsubscribeUserFromCategory
@@ -493,14 +526,14 @@ paths:
             statusCode: "200"
             responseTemplates:
               application/json: >
-                #set ($rootInput = $util.parseJson($input.path('$.output'))) 
-                #set ($root = $rootInput.result.body) 
-                { "categories" : [ 
-                #foreach($elem in $root.categories) 
-                "$elem" 
-                #if($foreach.hasNext), #end 
-                #end 
-                ] 
+                #set ($root=$input.path('$.result.body')) 
+                { 
+                  "categories" : 
+                    [ 
+                      #foreach($elem in $root.categories) 
+                      "$elem" 
+                      #if(#foreach.hasNext), #end 
+                    ] 
                 }
           "400":
             statusCode: "400"
@@ -512,7 +545,14 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Sub: 
-              >
-                {"input": "{\"username\":\"$input.params('username')\",\"category\":\"$input.params('category')\"}","stateMachineArn": "${deleteUserCategoryWorkflow}"}
+            Fn::Join: 
+              - ""
+              - - >
+                  {
+                    "input": "{\"username\":\"$input.params('username')\",
+                    \"category\":\"$input.params('category')\"
+                  }",
+                  "stateMachineArn": "
+                - Ref: deleteUserCategoryWorkflow
+                - "\"}"
         passthroughBehavior: "when_no_match"
