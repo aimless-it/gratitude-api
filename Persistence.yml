@@ -24,11 +24,11 @@ Resources:
       BackupRetentionPeriod: 7
       DBInstanceIdentifier: !Sub "complimentRDS-${ENV}"
       DBName: postgres
-      DBParameterGroupName: default.postgres12
+      DBParameterGroupName: default.postgres11
       DBSubnetGroupName: 
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:RDSSubnetGroup"
       Engine: postgres
-      EngineVersion: "12.5"
+      EngineVersion: "11.5"
       MasterUsername: 
         Fn::Sub: 
           - "{{resolve:secretsmanager:${master}::username}}"
@@ -81,20 +81,23 @@ Resources:
       DBProxyName: rdsProxy
       EngineFamily: POSTGRESQL
       IdleClientTimeout: 3
-      RequireTLS: false
+      RequireTLS: true
       RoleArn: 
         Fn::ImportValue:
           !Sub "gratitude:${AWS::Region}:${ENV}:DBProxyRole:Arn"
       VpcSubnetIds:
         - Fn::ImportValue:
             !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
+        - Fn::ImportValue:
+            !Sub "gratitude:${AWS::Region}:${ENV}:subnet2"
+      VpcSecurityGroupIds:
+        - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:pubGroupId"
       Auth:
         - AuthScheme: SECRETS
           IAMAuth: REQUIRED
           SecretArn: 
             Fn::ImportValue:
               !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
-          UserName: db_user
   ProxyConnection:
     Type: AWS::RDS::DBProxyTargetGroup
     Properties:

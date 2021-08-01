@@ -100,7 +100,8 @@ Resources:
       GenerateSecretString: 
         SecretStringTemplate: '{"username":"db_user"}'
         GenerateStringKey: password
-      Name: secretDBMasterCredentials
+        ExcludeCharacters: "/@\" ,"
+      Name: !Sub "secretDBMasterCredentials-${ENV}"
       Tags:
         - Key: compliment
           Value: secretDBMasterCredentials

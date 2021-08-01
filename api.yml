@@ -177,24 +177,22 @@ paths:
               application/json: >
                 '#set ($root=$input.path('$.result.body'))
                 {
-                  "username": "$root.username",
-                  "email": "$root.email",
-                  "givenName": "$root.givenName",
-                  "familyName": "$root.familyName",
-                  "dob": "$root.dob","
-                  "ethnicity": $root.ethnicity",
-                  "gender": "$root.ethnicity",
-                  "locale": "$root.locale",
-                  "phoneNumber": "$root.phoneNumber",
-                  "personalityType": {
-                    "sensing": "$root.personalityType.sensing",
-                    "introversion":"$root.personalityType.introversion",
-                    "judging": "$root.personalityType.judging",
-                    "feeling": "$root.personalityType.feeling"
-                  }
+                "username": "$root.username",
+                "email": "$root.email",
+                "givenName": "$root.givenName",
+                "familyName": "$root.familyName",
+                "dob": "$root.dob","
+                "ethnicity": $root.ethnicity",
+                "gender": "$root.ethnicity",
+                "locale": "$root.locale",
+                "phoneNumber": "$root.phoneNumber",
+                "personalityType": {
+                "sensing": "$root.personalityType.sensing",
+                "introversion":"$root.personalityType.introversion",
+                "judging": "$root.personalityType.judging",
+                "feeling": "$root.personalityType.feeling"
                 }
-                '
-
+                }'
           "400":
             statusCode: "400"
             responseTemplates:
@@ -208,9 +206,9 @@ paths:
             Fn::Join:
               - ""
               - - >
-                "{\"input\": {
+                  "{\"input\": {
                   "username":"$input.params('username')"
-                },\"stateMachineArn\": \""
+                  },\"stateMachineArn\": \""
                 - Ref: getUserWorkflow
                 - "\"}"
         passthroughBehavior: "when_no_match"
@@ -255,9 +253,8 @@ paths:
               application/json: >
                 '#set ($root=$input.path('$.result.body'))
                 {
-                  "compliment": "$root.compliment"
-                }
-                '
+                "compliment": "$root.compliment"
+                }'
           "400":
             statusCode: "400"
             responseTemplates:
@@ -317,7 +314,7 @@ paths:
               application/json: >
                 '#set ($root=$input.path('$.result.body'))
                 {
-                  "compliment":"$root.compliment"
+                "compliment":"$root.compliment"
                 }
                 '
           "400":
@@ -377,14 +374,13 @@ paths:
               application/json: >
                 '#set ($root=$input.path('$.result.body'))
                 {
-                  "categories" : [
-                  #foreach($elem in $root.categories)
-                  "$elem"
-                  #if($foreach.hasNext), #end
-                  #end
-                  ]
-                }
-                '
+                "categories" : [
+                #foreach($elem in $root.categories)
+                "$elem"
+                #if($foreach.hasNext), #end
+                #end
+                ]
+                }'
           "400":
             statusCode: "400"
             responseTemplates:
@@ -447,13 +443,12 @@ paths:
               application/json: >
                 '#set ($root=$input.path('$.result.body'))
                 {
-                  "categories" : [
-                    #foreach($elem in $root.categories)
-                      "$elem"
-                    #if(#foreach.hasNext), #end
-                  ]
-                }
-                '
+                "categories" : [
+                #foreach($elem in $root.categories)
+                "$elem"
+                #if(#foreach.hasNext), #end
+                ]
+                }'
           "400":
             statusCode: "400"
             responseTemplates:
@@ -514,14 +509,13 @@ paths:
               application/json: >
                 '#set ($root=$input.path('$.result.body'))
                 {
-                  "categories" : [
-                  #foreach($elem in $root.categories)
-                    "$elem"
-                  #if($foreach.hasNext), #end
-                  #end
-                  ]
-                }
-                '
+                "categories" : [
+                #foreach($elem in $root.categories)
+                "$elem"
+                #if($foreach.hasNext), #end
+                #end
+                ]
+                }'
           "400":
             statusCode: "400"
             responseTemplates:
