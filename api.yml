@@ -138,8 +138,18 @@ components:
               error:
                 type: string
                 format: character 
-security:
-  - apiSec: []
+  securitySchemes:
+    CognitoAuth:
+      type: apikey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - Fn::ImportValue:
+              Fn::Sub:
+                gratitude:${AWS::Region}:${ENV}:UserPool:Arn
 paths:
   /user/{username}:
     get:
@@ -164,6 +174,8 @@ paths:
                   type: string
         '400':
           $ref: "#/components/responses/default400"
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -236,6 +248,8 @@ paths:
                 type: string
         '400':
           $ref: '#/components/responses/default400'
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -294,6 +308,8 @@ paths:
             application/json:
               schema:
                 type: string
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -350,6 +366,8 @@ paths:
                   type: string
         '400':
           $ref: '#/components/responses/default400'
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -417,6 +435,8 @@ paths:
             application/json:
               schema:
                 type: string
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -482,6 +502,8 @@ paths:
                 type: array
                 items:
                   type: string
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
