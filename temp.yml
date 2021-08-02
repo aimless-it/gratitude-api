@@ -108,12 +108,6 @@ components:
         required: true
         schema:
           type: string
-  securitySchemes:
-    apiSec:
-      type: apiKey
-      description: api key for accessing the api for developers
-      name: api-key
-      in: header
   requestBodies:
     userCategoryRequest:
       description: An object with the user's username and the category name
@@ -138,20 +132,75 @@ components:
               error:
                 type: string
                 format: character 
-security:
-  - apiSec: []
+    corsResponse:
+      Access-Control-Allow-Origin:
+        schema:
+          type: string
+      Access-Control-Allow-Methods:
+        schema:
+          type: string
+      Access-Control-Allow-Headers:
+        schema:
+          type: string
+      description: default cors response
+  securitySchemes:
+    CognitoAuth:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - Fn::ImportValue:
+              Fn::Sub:
+                gratitude:${AWS::Region}:${ENV}:UserPool:Arn
+
 paths:
   /user/{username}:
+    parameters:
+      - $ref: '#/components/parameters/usernameParameter'
+    options:
+      operationId: getUserCors
+      tags:
+        - cors
+      responses:
+        default:
+          $ref: '#/components/responses/corsResponse'
+      security:
+        - CognitoAuth: []
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplate:
+          application/json: |
+            {
+              "statusCode":200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
     get:
       operationId: getUserInfo
       tags:
         - get user information
-      parameters:
-        - $ref: '#/components/parameters/usernameParameter'
       description: Get a users information given the username
       responses:
         '200':
           description: The returned user
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -164,6 +213,8 @@ paths:
                   type: string
         '400':
           $ref: "#/components/responses/default400"
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -173,6 +224,10 @@ paths:
         responses:
           "200":
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
             responseTemplates:
               application/json: >
                 #set ($rootInput = $util.parseJson($input.path('$.output'))) 
@@ -204,31 +259,61 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Join:
-              - ""
-              - - >
-                  {
-                    "input": "{\"username\":\"$input.params('username')\"}",
-                    "stateMachineArn": "
-                - Ref: getUserWorkflow
-                - \"}
+            Fn::Sub:
+              >
+                {"input": "{\"username\":\"$input.params('username')\"}","stateMachineArn": "${getUserWorkflow}"}
         passthroughBehavior: "when_no_match"
 
   /compliment/{category}:
+    parameters:
+      - $ref: '#/components/parameters/categoryParameter'
+      - $ref: '#/components/parameters/sensingQuery'
+      - $ref: '#/components/parameters/feelingQuery'
+      - $ref: '#/components/parameters/introversionQuery'
+      - $ref: '#/components/parameters/judgingQuery'
+    options:
+      operationId: getComplimentCatCors
+      description: Cors method for getting compliment
+      tags:
+        - cors
+      responses:
+        default:
+          $ref: '#/components/responses/corsResponse'
+      security:
+        - CognitoAuth: []
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplate:
+          application/json: |
+            {
+              "statusCode":200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            
     get:
       operationId: getComplimentByCategoryAndPersonalityType
       tags:
         - get compliment by category and personality type
-      parameters:
-        - $ref: '#/components/parameters/categoryParameter'
-        - $ref: '#/components/parameters/sensingQuery'
-        - $ref: '#/components/parameters/feelingQuery'
-        - $ref: '#/components/parameters/introversionQuery'
-        - $ref: '#/components/parameters/judgingQuery'
       description: Get a compliment given the category and personality type
       responses:
         '200':
           description: The returned compliment
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -241,6 +326,8 @@ paths:
                 type: string
         '400':
           $ref: '#/components/responses/default400'
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -250,6 +337,10 @@ paths:
         responses:
           "200":
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
             responseTemplates:
               application/json: >
                 #set ($rootInput = $util.parseJson($input.path('$.output'))) 
@@ -265,23 +356,37 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Join:
-              - ""
-              - - >
-                    {
-                      "input": "{\"category\":\"$input.params('category')\", 
-                      \"sensing\":\"$input.params('sensing')\", 
-                      \"judging\":\"$input.params('judging')\",
-                      \"introversion\":\"$input.params('introversion')\",
-                      \"feeling\":\"$input.params('feeling')\"
-                    }",
-                    "stateMachineArn": "
-                - Ref: getComplimentByCategoryWorkflow
-                - \"}
+            Fn::Sub:
+              >
+                {"input": "{\"category\":\"$input.params('category')\", \"sensing\":\"$input.params('sensing')\", \"judging\":\"$input.params('judging')\",\"introversion\":\"$input.params('introversion')\",\"feeling\":\"$input.params('feeling')\"}","stateMachineArn": "${getComplimentByCategoryWorkflow}"}
         passthroughBehavior: "when_no_match"
   /compliment/user/{username}:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
+    options:
+      operationId: getComplimentUserCors
+      tags:
+        - cors
+      responses:
+        default:
+          $ref: '#/components/responses/corsResponse'
+      security:
+        - CognitoAuth: []
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplate:
+          application/json: |
+            {
+              "statusCode":200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            
     get:
       operationId: getComplimentByUsername
       tags:
@@ -290,6 +395,16 @@ paths:
       responses:
         '200':
           description: The generated compliment
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -309,6 +424,8 @@ paths:
             application/json:
               schema:
                 type: string
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -318,6 +435,10 @@ paths:
         responses:
           "200":
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
             responseTemplates:
               application/json: >
                 #set ($rootInput = $util.parseJson($input.path('$.output'))) 
@@ -333,18 +454,37 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Join:
-              - ""
-              - - >
-                    {
-                    "input": "{\"username\":\"$input.params('username')\"}",
-                    "stateMachineArn": "
-                - Ref: getComplimentByUsernameWorkflow
-                - \"}
+            Fn::Sub:
+              >
+                {"input": "{\"username\":\"$input.params('username')\"}","stateMachineArn": "${getComplimentByUsernameWorkflow}"}
         passthroughBehavior: "when_no_match"
   /category/user/{username}:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
+    options:
+      operationId: userCategoryCors
+      tags:
+        - cors
+      responses:
+        default: 
+          $ref: '#/components/responses/corsResponse'
+      security:
+        - CognitoAuth: []
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplate:
+          application/json: |
+            {
+              "statusCode":200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            
     get:
       operationId: getCategoriesForUser
       tags:
@@ -353,6 +493,16 @@ paths:
       responses:
         '200':
           description: The categories that a user is subscribed to
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:    
               schema:
@@ -370,6 +520,8 @@ paths:
                   type: string
         '400':
           $ref: '#/components/responses/default400'
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -379,6 +531,10 @@ paths:
         responses:
           "200":
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
             responseTemplates:
               application/json: >
                 #set ($rootInput = $util.parseJson($input.path('$.output'))) 
@@ -400,20 +556,38 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json:
-            Fn::Join:
-              - ""
-              - - >
-                    {
-                      "input": "{\"username\":\"$input.params('username')\"
-                    }",
-                    "stateMachineArn": "
-                - Ref: getCategoriesForUserWorkflow
-                - \"}
+            Fn::Sub:
+              >
+                {"input": "{\"username\":\"$input.params('username')\"}","stateMachineArn": "${getCategoriesForUserWorkflow}"}
         passthroughBehavior: "when_no_match"
-  /user/{username}/category/{category}:
+  /category/{category}/user/{username}:
     parameters:
-      - $ref: '#/components/parameters/usernameParameter'
       - $ref: '#/components/parameters/categoryParameter'
+      - $ref: '#/components/parameters/usernameParameter'
+    options:
+      operationId: userCategoryAlterationCors
+      tags:
+        - cors
+      responses:
+        deault:
+          $ref: '#/components/responses/corsResponse'
+      security:
+        - CognitoAuth: []
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplate:
+          application/json: |
+            {
+              "statusCode":200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            
     post:
       operationId: subscribeUserToCategory
       tags:
@@ -422,6 +596,16 @@ paths:
       responses:
         '200':
           description: The user has been subscribed and the new categories are returned
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -443,6 +627,8 @@ paths:
             application/json:
               schema:
                 type: string
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -452,16 +638,20 @@ paths:
         responses:
           "200":
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
             responseTemplates:
               application/json: >
-                #set ($root=$input.path('$.result.body')) 
-                { 
-                  "categories" : 
-                    [ 
-                      #foreach($elem in $root.categories) 
-                      "$elem" 
-                      #if(#foreach.hasNext), #end 
-                    ] 
+                #set ($rootInput = $util.parseJson($input.path('$.output'))) 
+                #set ($root = $rootInput.result.body) 
+                { "categories" : [ 
+                #foreach($elem in $root.categories) 
+                "$elem" 
+                #if($foreach.hasNext), #end 
+                #end 
+                ] 
                 }
           "400":
             statusCode: "400"
@@ -473,16 +663,9 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json:
-            Fn::Join: 
-              - ""
-              - - >
-                    {
-                      "input": "{\"username\":\"$input.params('username')\",
-                      \"category\":\"$input.params('category')\"
-                      }",
-                      "stateMachineArn": "
-                - Ref: postUserCategoryWorkflow
-                - \"}
+            Fn::Sub:
+              >
+                {"input": "{\"username\":\"$input.params('username')\",\"category\":\"$input.params('category')\"}","stateMachineArn": "${postUserCategoryWorkflow}"}
         passthroughBehavior: "when_no_match"
     delete:
       operationId: unsubscribeUserFromCategory
@@ -492,6 +675,16 @@ paths:
       responses:
         '200':
           description: The user has successfully unsubscribed from the category and is returning the new category list
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -515,6 +708,8 @@ paths:
                 type: array
                 items:
                   type: string
+      security:
+        - CognitoAuth: []
       x-amazon-apigateway-integration:
         type: "aws"
         credentials: 
@@ -524,16 +719,20 @@ paths:
         responses:
           "200":
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
             responseTemplates:
               application/json: >
-                #set ($root=$input.path('$.result.body')) 
-                { 
-                  "categories" : 
-                    [ 
-                      #foreach($elem in $root.categories) 
-                      "$elem" 
-                      #if(#foreach.hasNext), #end 
-                    ] 
+                #set ($rootInput = $util.parseJson($input.path('$.output'))) 
+                #set ($root = $rootInput.result.body) 
+                { "categories" : [ 
+                #foreach($elem in $root.categories) 
+                "$elem" 
+                #if($foreach.hasNext), #end 
+                #end 
+                ] 
                 }
           "400":
             statusCode: "400"
@@ -545,14 +744,7 @@ paths:
               application/json: "#set ($root=$input.path('$.result')"
         requestTemplates:
           application/json: 
-            Fn::Join: 
-              - ""
-              - - >
-                  {
-                    "input": "{\"username\":\"$input.params('username')\",
-                    \"category\":\"$input.params('category')\"
-                  }",
-                  "stateMachineArn": "
-                - Ref: deleteUserCategoryWorkflow
-                - "\"}"
+            Fn::Sub: 
+              >
+                {"input": "{\"username\":\"$input.params('username')\",\"category\":\"$input.params('category')\"}","stateMachineArn": "${deleteUserCategoryWorkflow}"}
         passthroughBehavior: "when_no_match"

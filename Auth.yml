@@ -82,7 +82,6 @@ Resources:
   GratitudeClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      AccessTokenValidity: 180
       AllowedOAuthFlows:
         - implicit
       AllowedOAuthFlowsUserPoolClient: true
@@ -98,41 +97,41 @@ Resources:
       ExplicitAuthFlows:
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_USER_SRP_AUTH
-      IdTokenValidity: 180
       LogoutURLs:
         - gratitude://logout
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
-        - race
+        - 'custom:race'
         - birthdate
         - family_name
         - given_name
         - gender
-        - username
-        - zoneinfo
-        - nickname
         - phone_number
         - locale
+        - email
       WriteAttributes:
         - birthdate
-        - email
         - family_name
         - given_name
-        - nickname
         - phone_number
-        - zoneinfo
-        - race
+        - 'custom:race'
         - locale
         - gender
-      RefreshTokenValidity: 365
+        - email
       SupportedIdentityProviders:
         - COGNITO
-        - Facebook
-        - Google
+      RefreshTokenValidity: 365
+      IdTokenValidity: 20
+      AccessTokenValidity: 20
       TokenValidityUnits:
-        AccessToken: days
-        IdToken: days
+        AccessToken: hours
+        IdToken: hours
         RefreshToken: days
+      UserPoolId: !Ref UserPool
+  GratitudeAuthDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: gratitude
       UserPoolId: !Ref UserPool
   AdminGroup:
     Type: AWS::Cognito::UserPoolGroup

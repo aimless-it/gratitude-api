@@ -31,15 +31,6 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       TracingEnabled: true
-      Auth:
-        Authorizers:
-          CognitoAuth:
-            UserPoolArn: 
-              Fn::ImportValue: 
-                !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"
-            AuthType: COGNITO_USER_POOLS
-        ApiKeyRequired: false
-        AddDefaultAuthorizerToCorsPreflight: false
       Description: Api Gateway for gratitude api
       OpenApiVersion: 3.0.3
       StageName: !Ref ENV

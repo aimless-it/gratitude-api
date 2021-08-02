@@ -108,12 +108,6 @@ components:
         required: true
         schema:
           type: string
-  securitySchemes:
-    apiSec:
-      type: apiKey
-      description: api key for accessing the api for developers
-      name: api-key
-      in: header
   requestBodies:
     userCategoryRequest:
       description: An object with the user's username and the category name
@@ -140,7 +134,7 @@ components:
                 format: character 
   securitySchemes:
     CognitoAuth:
-      type: apikey
+      type: apiKey
       name: Authorization
       in: header
       x-amazon-apigateway-authtype: cognito_user_pools
@@ -151,7 +145,7 @@ components:
               Fn::Sub:
                 gratitude:${AWS::Region}:${ENV}:UserPool:Arn
 paths:
-  /user/{username}:
+  /user/{username}:  
     get:
       operationId: getUserInfo
       tags:
@@ -221,7 +215,7 @@ paths:
                 {"input": "{\"username\":\"$input.params('username')\"}","stateMachineArn": "${getUserWorkflow}"}
         passthroughBehavior: "when_no_match"
 
-  /compliment/{category}:
+  /compliment/{category}:  
     get:
       operationId: getComplimentByCategoryAndPersonalityType
       tags:
@@ -280,7 +274,7 @@ paths:
         passthroughBehavior: "when_no_match"
   /compliment/user/{username}:
     parameters:
-      - $ref: '#/components/parameters/usernameParameter'
+      - $ref: '#/components/parameters/usernameParameter'  
     get:
       operationId: getComplimentByUsername
       tags:
@@ -340,7 +334,7 @@ paths:
         passthroughBehavior: "when_no_match"
   /category/user/{username}:
     parameters:
-      - $ref: '#/components/parameters/usernameParameter'
+      - $ref: '#/components/parameters/usernameParameter'  
     get:
       operationId: getCategoriesForUser
       tags:
