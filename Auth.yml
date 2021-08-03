@@ -90,15 +90,18 @@ Resources:
         - aws.cognito.signin.user.admin
         - email
       CallbackURLs:
+        - https://www.google.com/
         - gratitude://home
         - gratitude://signin
       ClientName: gratitude
-      DefaultRedirectURI: gratitude://home
+      DefaultRedirectURI: https://www.google.com/
       ExplicitAuthFlows:
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_USER_SRP_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
       LogoutURLs:
-        - gratitude://logout
+        # - gratitude://logout
+        - https://www.google.com/
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
         - 'custom:race'
@@ -131,8 +134,8 @@ Resources:
   GratitudeAuthDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      Domain: gratitude
       UserPoolId: !Ref UserPool
+      Domain: gratitude
   AdminGroup:
     Type: AWS::Cognito::UserPoolGroup
     Properties:

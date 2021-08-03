@@ -2,3 +2,5 @@ node_modules
 samconfig.toml
 .vscode/
 coverage/
+token.json
+src/config/**
