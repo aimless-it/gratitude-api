@@ -1,7 +1,13 @@
-require('dotenv').config()
-const {updateUserFunction} = require('../../../../../src/handlers').handlers
+const mock = require('../mockDB')
+const { updateUserFunction } = require('../../../../../src').handlers
 
 describe('It should update and return the user information ', () => {
+    beforeAll( () => {
+        mock.mock();
+    })
+    afterAll( () => {
+        mock.done();
+    })
     it('when it is given the correct input', async () => {
         const user = {
             username: 'testUser1',
@@ -15,13 +21,15 @@ describe('It should update and return the user information ', () => {
             locale: null
         };
         const event = {
-            body: JSON.stringify({
+            body: {
                 user,
                 meta: {},
                 query: {}
-            })
+            },
+            result: {}
         };
-        const res = await updateUserFunction(event);
+        const { result } = await updateUserFunction(event);
+        const { body: res } = result; 
         expect(res.username).toEqual(user.username);
         expect(res.locale.trim()).toEqual('EN-US');
         expect(res.email).toEqual('user1@email.com')

@@ -1,7 +1,13 @@
-require('dotenv').config();
-const {UserCreationTrigger} = require('../../../../../src/handlers').handlers
+const mock = require('../mockDB')
+const {UserCreationTrigger} = require('../../../../../src').handlers
 
 describe('It should create a new user ', () => {
+    beforeAll( () => {
+        mock.mock();
+    })
+    afterAll( () => {
+        mock.done();
+    })
     it('when given the proper information', async () => {
         const userAttributes = {
             given_name: 'given4',

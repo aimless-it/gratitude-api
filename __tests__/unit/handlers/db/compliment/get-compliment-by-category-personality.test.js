@@ -1,7 +1,13 @@
-require('dotenv').config()
-const {getComplimentFunction} = require('../../../../../src/handlers').handlers
+const mock = require('../mockDB')
+const {getComplimentFunction} = require('../../../../../src').handlers
 
 describe('It should get a random compliment from the db based on ', () => {
+    beforeAll( () => {
+        mock.mock();
+    })
+    afterAll( () => {
+        mock.done();
+    })
     it('when it is given the correct input', async () => {
         const answer = 'youre a good person';
         const query = {

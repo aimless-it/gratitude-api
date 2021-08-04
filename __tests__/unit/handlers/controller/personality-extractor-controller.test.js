@@ -1,4 +1,4 @@
-const {personalityController} = require('../../../../src/handlers').handlers
+const {personalityController} = require('../../../../src/').handlers
 
 describe('it should return the proper construction of object when ', () => {
     it('it is given proper parameters', async () => {

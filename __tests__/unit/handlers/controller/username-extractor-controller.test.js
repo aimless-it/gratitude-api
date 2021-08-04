@@ -1,4 +1,4 @@
-const {usernameController} = require('../../../../src/handlers').handlers
+const {usernameController} = require('../../../../src').handlers
 
 describe('it should return the proper construction of object when ', () => {
     

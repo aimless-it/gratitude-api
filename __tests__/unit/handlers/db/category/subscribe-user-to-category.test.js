@@ -1,7 +1,13 @@
-require('dotenv').config();
-const {subscribeCategoryFunction} = require('../../../../../src/handlers').handlers
+const mock = require('../mockDB')
+const {subscribeCategoryFunction} = require('../../../../../src').handlers
 
 describe('It should add a category to the user preferences when ', () => {
+    beforeAll( () => {
+        mock.mock();
+    })
+    afterAll( () => {
+        return mock.done();
+    })
     it('it is given the correct input', async () => {
         const categories = [
             'sad',
@@ -12,13 +18,14 @@ describe('It should add a category to the user preferences when ', () => {
             category: 'glad'
         };
         const event = {
-            body: JSON.stringify({
+            body: {
                 user,
                 meta: {},
                 query: {}
-            })
+            },
+            result:{}
         };
         const res = await subscribeCategoryFunction(event);
-        expect(res).toEqual(categories)
+        expect(res.result.body).toEqual(categories)
     })
 })

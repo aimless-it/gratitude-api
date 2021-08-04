@@ -1,7 +1,13 @@
-require('dotenv').config();
-const {getUserComplimentFunction} = require('../../../../../src/handlers').handlers
+const mock = require('../mockDB')
+const {getUserComplimentFunction} = require('../../../../../src').handlers
 
 describe('It should return a compliment based off the users preferences ', () => {
+    beforeAll( () => {
+        mock.mock();
+    })
+    afterAll( () => {
+        mock.done();
+    })
     it('when given correct input', async () => {
         const user = {
             username: 'testUser1'

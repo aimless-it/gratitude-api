@@ -1,4 +1,4 @@
-const {userCategoryController} = require('../../../../src/handlers/').handlers
+const {userCategoryController} = require('../../../../src/').handlers
 
 describe('it should return the proper construction of object when ', () => {
 
