@@ -6,7 +6,7 @@ describe('It should create a new user ', () => {
         mock.mock();
     })
     afterAll( () => {
-        mock.done();
+        return mock.done();
     })
     it('when given the proper information', async () => {
         const userAttributes = {

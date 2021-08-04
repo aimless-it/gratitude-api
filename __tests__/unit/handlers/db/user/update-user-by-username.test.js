@@ -6,7 +6,7 @@ describe('It should update and return the user information ', () => {
         mock.mock();
     })
     afterAll( () => {
-        mock.done();
+       return mock.done();
     })
     it('when it is given the correct input', async () => {
         const user = {

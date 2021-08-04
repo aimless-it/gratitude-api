@@ -28,13 +28,6 @@ exports.handler = async (event, context) => {
         
     }
     event.result = {
-        statusCode: 200,
-        headers: {
-            'Access-Origin-Accept-Headers': '*',
-            'Access-Origin-Accept-Origin':'*',
-            'Access-Origin-Accept-Methods':'*',
-            'Content-Type':'application/json'
-        },
     }
     return event;
 }

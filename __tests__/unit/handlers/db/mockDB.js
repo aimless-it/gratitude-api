@@ -5,7 +5,7 @@ const JestMock = require('jest-mock');
 require('dotenv').config()
 let db;
 const mock = () => {
-    const db = new Pool();
+    db = new Pool();
     pool.mockImplementation(() => db);
 }
 

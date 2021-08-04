@@ -6,7 +6,7 @@ describe('It should return a compliment based off the users preferences ', () =>
         mock.mock();
     })
     afterAll( () => {
-        mock.done();
+        return mock.done();
     })
     it('when given correct input', async () => {
         const user = {
@@ -22,6 +22,6 @@ describe('It should return a compliment based off the users preferences ', () =>
             result: {}
         };
         const res = await getUserComplimentFunction(event);
-        expect(res.result.data).toEqual(answer);
+        expect(res.result.body).toEqual({compliment:answer});
     })
 })

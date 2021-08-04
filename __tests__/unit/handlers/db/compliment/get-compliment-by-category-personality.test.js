@@ -6,7 +6,7 @@ describe('It should get a random compliment from the db based on ', () => {
         mock.mock();
     })
     afterAll( () => {
-        mock.done();
+        return mock.done();
     })
     it('when it is given the correct input', async () => {
         const answer = 'youre a good person';
@@ -28,6 +28,6 @@ describe('It should get a random compliment from the db based on ', () => {
             result: {}
         };
             const res = await getComplimentFunction(event);
-            expect(res.result.data).toEqual(answer);
+            expect(res.result.body).toEqual({compliment: answer});
     })
 })

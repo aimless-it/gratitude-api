@@ -9,10 +9,11 @@ describe('It should add a category to the user preferences when ', () => {
         return mock.done();
     })
     it('it is given the correct input', async () => {
-        const categories = [
+        const categories = {
+            categories:[
             'sad',
             'glad'
-        ]
+        ]}
         const user = {
             username: 'testUser2',
             category: 'glad'

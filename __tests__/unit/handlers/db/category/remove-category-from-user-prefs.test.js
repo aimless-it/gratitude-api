@@ -7,13 +7,14 @@ describe('It should remove categories from a users subscription ', () => {
         mock.mock();
     })
     afterAll( () => {
-        mock.done();
+        return mock.done();
     })
     it('when it is given is given the correct input', async () => {
-        const categories = [
+        const categories = {
+            categories: [
             'sad',
             'mad'
-        ]
+        ]}
         const user = {
             username: "testUser1",
             category: "glad"

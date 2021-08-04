@@ -8,22 +8,23 @@ describe('it should return the proper construction of object when ', () => {
             judging: 'testJudging',
             sensing: 'testSensing'
         };
-        const category = {
-            category: 'testCategory'
-        }
+        const category = 'testCategory'
         const event = {
             httpMethod: 'GET',
-            pathParameters: category,
-            queryStringParameters: personalityType
+            feeling: personalityType.feeling,
+            introversion: personalityType.introversion,
+            judging: personalityType.judging,
+            sensing: personalityType.sensing,
+            category
         }
         const res = await personalityController(event);
-        expect(res).toEqual({
+        expect(res.body).toEqual({
             query: {
-                category: category.category,
+                category: category,
                 personalityType
             },
             meta:{},
-            user: {}
+            user: {},
         })
     })
 })
