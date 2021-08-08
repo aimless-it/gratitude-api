@@ -149,22 +149,16 @@ paths:
     parameters:
       - $ref: '#/components/parameters/usernameParameter'
     options:
-      responses:
-        default:
-          statusCode: "200"
-          content: {}
       security:
         - CognitoAuth: []
       x-amazon-apigateway-integration:
-        type: mock
+        type: "mock"
         responses:
           default:
             statusCode: "200"
-          "200":
-            statusCode: "200"
         requestTemplates:
-          application/json: "{statusCode:200}"
-        passThroughBehavior: "when_no_match"
+          application/json: "{statusCode: 200}"
+        passthroughBehavior: "when_no_match"
     get:
       operationId: getUserInfo
       tags:
@@ -248,20 +242,14 @@ paths:
     options:
       security:
         - CognitoAuth: []
-      responses:
-        default:
-          statusCode: "200"
-          content: {}
       x-amazon-apigateway-integration:
-        type: mock
+        type: "mock"
         responses:
           default:
             statusCode: "200"
-          "200":
-            statusCode: "200"
         requestTemplates:
-          application/json: "{statusCode:200}"
-        passThroughBehavior: "when_no_match"
+          application/json: "{statusCode: 200}"
+        passthroughBehavior: "when_no_match"
     get:
       operationId: getComplimentByCategoryAndPersonalityType
       tags:
@@ -324,20 +312,14 @@ paths:
     options:
       security:
         - CognitoAuth: []
-      responses:
-          default:
-            statusCode: "200"
-            content: {}
       x-amazon-apigateway-integration:
-        type: mock
+        type: "mock"
         responses:
           default:
             statusCode: "200"
-          "200":
-            statusCode: "200"
         requestTemplates:
-          application/json: "{statusCode:200}"
-        passThroughBehavior: "when_no_match"
+          application/json: "{statusCode: 200}"
+        passthroughBehavior: "when_no_match"
     get:
       operationId: getComplimentByUsername
       tags:
@@ -407,20 +389,14 @@ paths:
     options:
       security:
         - CognitoAuth: []
-      responses:
-          default:
-            statusCode: "200"
-            content: {}
       x-amazon-apigateway-integration:
-        type: mock
+        type: "mock"
         responses:
           default:
             statusCode: "200"
-          "200":
-            statusCode: "200"
         requestTemplates:
-          application/json: "{\"statusCode\":200}"
-        passThroughBehavior: "when_no_match"
+          application/json: "{statusCode: 200}"
+        passthroughBehavior: "when_no_match"
     get:
       operationId: getCategoriesForUser
       tags:
@@ -492,20 +468,14 @@ paths:
     options:
       security:
         - CognitoAuth: []
-      responses:
-          default:
-            statusCode: "200"
-            content: {}
       x-amazon-apigateway-integration:
-        type: mock
+        type: "mock"
         responses:
           default:
             statusCode: "200"
-          "200":
-            statusCode: "200"
         requestTemplates:
-              application/json: "{statusCode:200}"
-        passThroughBehavior: "when_no_match"
+          application/json: "{statusCode: 200}"
+        passthroughBehavior: "when_no_match"
     post:
       operationId: subscribeUserToCategory
       tags:
