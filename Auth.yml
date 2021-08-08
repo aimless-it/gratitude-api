@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform:
-- AWS::Serverless-2016-10-31
+  - AWS::Serverless-2016-10-31
 Parameters:
   ENV:
     Type: String
@@ -8,18 +8,33 @@ Parameters:
     Default: env
 
 Resources:
-# BEGIN: Authentication
+  # BEGIN: Authentication
+  AdminAuthRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: cognito-idp.amazonaws.com
+      Policies:
+        - PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action: '*'
+                  Resource: '*'
+          PolicyName: AdminAuthGroupRole
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
       # AccountRecoverySetting:
       #   RecoveryMechanisms:
-      #     - Name: verified_email
-      #       Priority: 2
       #     - Name: verified_phone_number
       #       Priority: 1
       # AutoVerifiedAttributes:
-      #   - email
       #   - phone_number
       Policies:
         PasswordPolicy:
@@ -53,16 +68,126 @@ Resources:
         - Name: email
           AttributeDataType: String
           Required: true
-          Mutable: false 
+          Mutable: false
         - Name: locale
           AttributeDataType: String
           Required: false
-          Mutable: true     
+          Mutable: true
       LambdaConfig:
-        PostConfirmation: 
-           Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
-      # Add SMS Verification
+        PostConfirmation:
+          Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:cognitoInsertTrigger:Arn"
       # SmsConfiguration:
-        
+      #   ExternalId: PNVerifier
+      #   SnsCallerArn: !GetAtt SmsRole.Arn #verify this is correct
+  GratitudeClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - openid
+        - aws.cognito.signin.user.admin
+        - email
+      CallbackURLs:
+        - https://www.google.com/
+        - gratitude://home
+        - gratitude://signin
+      ClientName: gratitude
+      DefaultRedirectURI: https://www.google.com/
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+      LogoutURLs:
+        # - gratitude://logout
+        - https://www.google.com/
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - 'custom:race'
+        - birthdate
+        - family_name
+        - given_name
+        - gender
+        - phone_number
+        - locale
+        - email
+      WriteAttributes:
+        - birthdate
+        - family_name
+        - given_name
+        - phone_number
+        - 'custom:race'
+        - locale
+        - gender
+        - email
+      SupportedIdentityProviders:
+        - COGNITO
+      RefreshTokenValidity: 365
+      IdTokenValidity: 20
+      AccessTokenValidity: 20
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+      UserPoolId: !Ref UserPool
+  GratitudeAuthDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref UserPool
+      Domain: gratitude
+  AdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: Allowed users to access admin features
+      GroupName: Admin
+      Precedence: 0
+      UserPoolId: !Ref UserPool
+      RoleArn: !GetAtt AdminAuthRole.Arn
+  StandardGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: Allowed users to access usual app features
+      GroupName: Standard
+      Precedence: 1
+      UserPoolId: !Ref UserPool
+  SnsSmsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "Phone Number Verifier"
+      FifoTopic: false
+      TopicName: snsTopic
+  # SnsSmsSubscription:
+  #   Type: AWS::SNS::Subscription
+  #   Properties:
+  #     Protocol: sms
+  #     TopicArn: !Ref SnsSmsTopic
 
+  SmsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Iam role to call sns for sms messages
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cognito-idp.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: sms-caller
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:*
+                Resource:
+                  - '*'
   # END: Authentication
+
+Outputs:
+  UserPoolArn:
+    Value: !GetAtt UserPool.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:UserPool:Arn"

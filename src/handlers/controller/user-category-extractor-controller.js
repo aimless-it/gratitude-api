@@ -11,13 +11,17 @@ expected request:
  * @returns The body for the next lambda
  */
 exports.handler = async (event, context) => {
-    const {username, category} = event.pathParameters;
-    return {
+    const {username, category} = event;
+    event.body = {
         query: {},
         meta: {},
         user: {
             username,
             category
-        }
+        },
+        
     }
+    event.result = {
+    }
+    return event;
 }

@@ -80,7 +80,7 @@ Resources:
       GroupDescription: Security Group for rds instance
       VpcId: !Ref VPCId
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref publicGroup
+        - CidrIp: 10.0.0.0/16
           FromPort: 5432
           ToPort: 5432
           IpProtocol: tcp
@@ -93,39 +93,18 @@ Resources:
           FromPort: 0
           ToPort: 55000
           CidrIp: 0.0.0.0/0
-  # secretDBMasterCreds:
-  #   Type: AWS::SecretsManager::Secret
-  #   Properties:
-  #     Description: Store RDS username information into secrets manager
-  #     SecretString: !Sub 
-  #       - '{"username": "${username}", "password": "${password}"}'
-  #       - { username: app_user, password: app_password}
-  #     Name: secretDBMasterCredentials`
-  #     Tags:
-  #       - Key: compliment
-  #         Value: secretDBMasterCredentials
-  # secretDBEndpoint:
-  #   Type: AWS::SecretsManager::Secret
-  #   Properties:
-  #     Description: Store RDS Endpoint information into secretes manager
-  #     SecretString: !Sub 
-  #       - '{"address": "${address}", "port":"${port}", "database":"${database}"}'
-  #       - {address: generate, port: 5432, database: postgres}
-  #     Name: secret-rds-endpoint
-  #     Tags:
-  #       - Key: compliment
-  #         Value: secret-rds-endpoint
-  # secretDBAppInfo:
-  #   Type: AWS::SecretsManager::Secret
-  #   Properties:
-  #     Description: database info to use for queries
-  #     SecretString: !Sub 
-  #       - '{"username":"${username}","password":"${password}", "schema":"${schema}"}'
-  #       - {username: app_user, password: app_password, schema: compliments}
-  #     Name: secretDBSchema
-  #     Tags:
-  #       - Key: compliment
-  #         Value: secretDBConnectionInformation
+  secretDBMasterCreds:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Store RDS username information into secrets manager
+      GenerateSecretString: 
+        SecretStringTemplate: '{"username":"db_user"}'
+        GenerateStringKey: password
+        ExcludeCharacters: "/@\" ,"
+      Name: !Sub "secretDBMasterCredentials-${ENV}"
+      Tags:
+        - Key: compliment
+          Value: secretDBMasterCredentials
   workflowRole:
     Type: AWS::IAM::Role
     Properties:
@@ -143,7 +122,7 @@ Resources:
           PolicyDocument:
             Statement:
               - Effect: Allow
-                Action: 'lamdba:InvokeFunction'
+                Action: 'lambda:InvokeFunction'
                 Resource:
                   - '*'
                   # - !GetAtt getUserFunction.Arn
@@ -155,6 +134,38 @@ Resources:
                   # - !GetAtt personalityExtractorControllerFunction.Arn
                   # - !GetAtt usernameExtractorControllerFunction.Arn
                   # - !GetAtt userCategoryExtractorControllerFunction.Arn
+  DBProxyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'secretsmanager:GetResourcePolicy'
+                  - 'secretsmanager:GetSecretValue'
+                  - 'secretsmanager:DescribeSecret'
+                  - 'secretsmanager:ListSecretVersionIds'
+                Resource:
+                  - !Ref secretDBMasterCreds
+          PolicyName: masterGetter
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'secretsmanager:GetRandomPassword'
+                  - 'secretsmanager:ListSecrets'
+                Resource: '*'
+          PolicyName: masterRandomizer
   # END: Security
 
 Outputs:
@@ -182,3 +193,11 @@ Outputs:
     Value: !GetAtt workflowRole.Arn
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
+  DBSecretAdmin:
+    Value: !Ref secretDBMasterCreds
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
+  ProxyRoleArn:
+    Value: !GetAtt DBProxyRole.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxyRole:Arn"

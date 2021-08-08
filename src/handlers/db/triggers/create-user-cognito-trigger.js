@@ -1,6 +1,4 @@
-const {Client} = require('pg')
-const client = new Client()
-
+const pool = require('../config')
 /*
 expected body from cognito:
     {
@@ -29,7 +27,6 @@ expected body from cognito:
  * @returns The event for cognito to continue auth flow.
  */
 exports.handler = async (event, context) => {
-    await client.connect();
     const body = JSON.parse(event.body);
     const attributes = body.request.userAttributes;
     const query = {
@@ -45,17 +42,33 @@ exports.handler = async (event, context) => {
             attributes.gender || null,
             attributes.ethnicity || null,
             attributes.birthdate || null,
-            attributes.locale || null
+            attributes.locale || 'EN-US'
         ]
     }
-
+    const client = await pool().connect();
     try{
         await client.query('BEGIN')
         await client.query(query);
-        await client.query('COMMIT');
+        const res = await client.query('select * from compliment_user where username = $1', [body.userName]);
+        await client.query(process.env.NODE_ENV === 'prod' ? 'COMMIT' : 'ROLLBACK');
+        const { given_name : givenName, family_name : familyName, email, phone_number : phoneNumber, ethnicity, dob, locale, gender} = res.rows[0];
+        return { 
+            username: body.userName,
+            givenName,
+            familyName,
+            email,
+            phoneNumber,
+            ethnicity,
+            dob,
+            locale,
+            gender
+
+        };
+
     } catch(err) {
         console.error(`error saving to db on ${Date.now()}: ${err}`);
-        
+    } finally {
+        client.release();
     }
 
     return event;

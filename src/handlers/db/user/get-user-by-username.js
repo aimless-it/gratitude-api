@@ -1,6 +1,4 @@
-const {Client} = require('pg')
-const client = new Client()
-
+const pool = require('../config')
 /* 
 expected body:
     {
@@ -9,24 +7,22 @@ expected body:
         }
     }
  */
- /**
-  * Retrieves a user's information given the username
-  * @param event 
-  * @param context 
-  * @returns a complete object of the users information
-  */
+/**
+ * Retrieves a user's information given the username
+ * @param event 
+ * @param context 
+ * @returns a complete object of the users information
+ */
 exports.handler = async (event, context) => {
-    await client.connect()
 
-    const {user} = JSON.parse(event.body)
+    const { user } = event.body;
     const query = {
-        text: "select * from compliment_user u where username = $1 join personality_type p on u.personality_type_id = p.id ",
+        text: "select * from compliment_user u join personality_type p on u.personality_type_id = p.id where u.username=$1 ",
         values: [user.username]
     }
-
-    const res = await client.query(query);
-    const {username, given_name, family_name, email, phone_number, gender, ethnicity, dob, locale, sensing, judging, introversion, feeling} = res.rows[0];
-    return {
+    const res = await pool().query(query);
+    const { username, given_name, family_name, email, phone_number, gender, ethnicity, dob, locale, sensing, judging, introversion, feeling } = res.rows[0];
+    event.result.body = {
         username,
         givenName: given_name,
         familyName: family_name,
@@ -43,4 +39,5 @@ exports.handler = async (event, context) => {
             feeling
         }
     }
+    return event;
 }

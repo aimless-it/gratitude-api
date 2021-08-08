@@ -1,5 +1,4 @@
-const { Client } = require("pg");
-const client = new Client();
+const pool = require('../config')
 /* 
 expected body:
     {
@@ -16,14 +15,17 @@ expected body:
  * @returns A string for the compliment.
  */
 exports.handler = async (event, context) => {
-  await client.connect();
 
-  const { user } = JSON.parse(event.body);
+  const { user } = event.body;
   const query = {
     text: "select getComplimentByUsername($1)",
-    values: [user.username]
+    values: [user.username],
+    rowMode: 'array'
   };
+  const res = await pool().query(query);
+  event.result.body = {
+    compliment: res.rows[0][0]
+  }
+  return event;
 
-  const res = await client.query(query);
-  return res.rows[0].compliment;
 };

@@ -1,6 +1,4 @@
-const Client = require('pg')
-const client = new Client()
-
+const pool = require('../config')
 /*
 expected body:
     {
@@ -17,19 +15,26 @@ expected body:
  * @returns An array of Strings representing the categories for a user.
  */
 exports.handler = async (event, context) => {
-    await client.connect();
-    const { user } = JSON.parse(event.body);
+    const { user } = event.body;
     const query = {
-        text: "select removeComplimentFromUserPreferences($1, $2)",
+        text: "select removeCategoryFromUserPreferences($1, $2)",
         values: [user.username, user.category],
         rowMode: 'array'
     }
-
-    const res = await client.query(query)
-    const arr = [];
-    for (const row of res.rows) {
-        arr.push(...row)
+    const client = await pool().connect();
+    try{
+        await client.query('BEGIN');
+        const res = await client.query(query)
+        await client.query(process.env.NODE_ENV === 'prod' ? 'COMMIT' : 'ROLLBACK');
+        const arr = [];
+        for (const row of res.rows) {
+            arr.push(...row)
+        }
+        event.result.body={
+            categories: arr
+        }
+    } finally {
+        client.release();
     }
-
-    return arr;
+    return event;
 }

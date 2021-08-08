@@ -8,7 +8,6 @@ Parameters:
     Default: env
 Globals:
   Function:
-    Runtime: nodejs14.x
     Environment:
       Variables:
           # "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
@@ -16,36 +15,72 @@ Globals:
           # "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
           # "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
           # "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
-          "PGUSER": "app_user"
+          "PGUSER": "db_user"
           "PGHOST": 
-            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:complimentRDS:Endpoint:Address"
+            Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy:Endpoint"
           "PGPORT": "5432"
-          "PGPASSWORD": "password"
-          "PGDATABASE": "compliments"
+          "PGDATABASE": "postgres"
+          "REGION": !Sub "${AWS::Region}"
     VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:pubGroupId"
         SubnetIds:
           - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
 Resources:
-    # BEGIN: Functions
-  layer1:
-    Type: AWS::Serverless::LayerVersion
+  LambdaRole:
+    Type: AWS::IAM::Role
     Properties:
-      ContentUri: src/layer/.
-      CompatibleRuntimes:
-        - nodejs14.x
-      LayerName: init-layer
-      Description: Initial layer for lamdba functions in backend
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: XrayPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'xray:PutTraceSegments'
+                  - 'xray:PutTelemetryRecords'
+                  - 'xray:GetSamplingRules'
+                  - 'xray:GetSamplingTargets'
+                  - 'xray:GetSamplingStatisticSummaries'
+                Resource: '*'
+        - PolicyName: ProxyAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'rds-db:connect'
+                Resource: 
+                  Fn::Sub:
+                    - "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:${db}/db_user"
+                    - db:
+                        Fn::ImportValue:
+                          !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy"
+
+    # BEGIN: Functions
   cognitoInsertTrigger:
     Type: AWS::Serverless::Function
     Properties:
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.UserCreationTrigger
       Description: A lambda to use a trigger for Cognito sign up
       FunctionName: createUserCognitoTrigger
-      CodeUri: src/handlers/db/triggers/create-user-cognito-trigger.js
-      Handler: create-user-cognito-trigger.handler
       MemorySize: 128
-      Timeout: 5
+      Timeout: 15
+      Tracing: Active
+      Role: !GetAtt LambdaRole.Arn
       Tags:
         compliment: cognito trigger
   getCategoryFunction:
@@ -53,12 +88,15 @@ Resources:
     Properties:
       Description: A lambda to get category subscriptions for a user
       FunctionName: getCategoryFunction
-      CodeUri: src/handlers/db/category/get-categories-for-user.js
-      Handler: get-categories-for-user.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.getCategoryFunction
       MemorySize: 128
-      Timeout: 5
-      Layers:
-        - !Ref layer1
+      Tracing: Active
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 15
       Tags:
         compliment: get categories function
   removeCategoryFunction:
@@ -66,12 +104,15 @@ Resources:
     Properties:
       Description: A lambda to remove a category subscription for a user
       FunctionName: removeCategory
-      CodeUri: src/handlers/db/category/remove-category-from-user-prefs.js
-      Handler: remove-category-from-user-prefs.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.removeCategoryFunction
       MemorySize: 128
-      Timeout: 5
-      Layers:
-        - !Ref layer1
+      Tracing: Active
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 15
       Tags:
         compliment: remove category function
   addCategoryFunction:
@@ -79,12 +120,15 @@ Resources:
     Properties:
       Description: A lambda that will add a category subscription for a user
       FunctionName: addCategoryFunction
-      CodeUri: src/handlers/db/category/subscribe-user-to-category.js
-      Handler: subscribe-user-to-category.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.subscribeCategoryFunction
       MemorySize: 128
-      Timeout: 5
-      Layers:
-        - !Ref layer1
+      Tracing: Active
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 15
       Tags:
         compliment: addCategoryFunction
   getRandomUserComplimentFunction:
@@ -92,12 +136,15 @@ Resources:
     Properties:
       Description: A lambda to get a compliment, given a username
       FunctionName: getRandomUserComplimentFunction 
-      CodeUri: src/handlers/db/compliments/get-compliment.js
-      Handler: get-compliment.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.getUserComplimentFunction
       MemorySize: 128
-      Timeout: 5
-      Layers:
-        - !Ref layer1
+      Tracing: Active
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 15
       Tags:
         compliment: get compliment function
   getRandomComplimentFunction:
@@ -105,12 +152,15 @@ Resources:
     Properties:
       Description: A lambda to get a random compliment from the db given the correct params
       FunctionName: getRandomComplimentFunction
-      CodeUri: src/handlers/db/compliments/get-compliment-by-category-personality.js
-      Handler: get-compliment-by-category-personality.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.getComplimentFunction
       MemorySize: 128
-      Timeout: 5
-      Layers:
-        - !Ref layer1
+      Tracing: Active
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 15
       Tags:
         compliment: get random compliment by category and personality type function
   getUserFunction:
@@ -118,12 +168,15 @@ Resources:
     Properties:
       Description: A lambda function to get a user's information
       FunctionName: getUserFunction
-      CodeUri: src/handlers/db/user/get-user-by-username.js
-      Handler: get-user-by-username.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.getUserFunction
       MemorySize: 128
-      Timeout: 5
-      Layers:
-        - !Ref layer1
+      Tracing: Active
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 15
       Tags:
         compliment: get user by username function
   personalityExtractorControllerFunction:
@@ -131,9 +184,13 @@ Resources:
     Properties:
       Description: A lambda for extracting the personality type and category from the request body
       FunctionName: personalityExtractorControllerFunction
-      CodeUri: src/handlers/controller/personality-extractor-controller.js
-      Handler: personality-extractor-controller.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.personalityController
       MemorySize: 128
+      Tracing: Active
       Timeout: 5
       Tags:
         compliment: controller-personality
@@ -142,9 +199,13 @@ Resources:
     Properties:
       Description: A lambda for extracting the user and category from the request
       FunctionName: userCategoryExtractorControllerFunction
-      CodeUri: src/handlers/controller/user-category-extractor-controller.js
-      Handler: user-category-extractor-controller.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.userCategoryController
       MemorySize: 128
+      Tracing: Active
       Timeout: 5
       Tags:
         compliment: controller-user-category
@@ -153,9 +214,13 @@ Resources:
     Properties:
       Description: A lambda for extracting the username from the request path
       FunctionName: usernameExtractorControllerFunction
-      CodeUri: src/handlers/controller/username-extractor-controller.js
-      Handler: username-extractor-controller.handler
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command: 
+          - index.handlers.usernameController
       MemorySize: 128
+      Tracing: Active
       Timeout: 5
       Tags:
         compliment: controller-username

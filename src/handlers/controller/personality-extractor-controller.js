@@ -12,9 +12,8 @@ expected request:
  * @returns The body for the next lambda
  */
 exports.handler = async (event, context) => {
-    const {category} = event.pathParameters;
-    const {feeling, introversion, judging, sensing} = event.queryStringParameters;
-    return {
+    const {feeling, introversion, judging, sensing, category} = event;
+    event.body = {
         query: {
             category,
             personalityType: {
@@ -25,6 +24,10 @@ exports.handler = async (event, context) => {
             }
         },
         meta: {},
-        user: {}
+        user: {},
+        
     }
+    event.result = {
+    }
+    return event;
 }

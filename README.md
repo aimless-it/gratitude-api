@@ -7,17 +7,17 @@
 - [ ] Create Lambda for Stream
 - [X] Create openapi doc for api
 - [X] iam roles for lambda where necessary
-- [ ] extract template for nesting and modularization [ Began, but not implementing due to complexity and time constraint ]
-- [ ] Create userpool sms verification
+- [X] extract template for nesting and modularization
+- [X] Create userpool sms verification
 - [X] Create userpool api key
-- [ ] Finish configuring app user pool
-- [ ] Connect cognito to api for auth
-- [ ] Create RDS Lambda proxy for functions to interact with db
+- [X] Finish configuring app user pool
+- [X] Connect cognito to api for auth
+- [X] Create RDS Lambda proxy for functions to interact with db
 
 ## TODO: future
 - [ ] Create buildspec.yml for ci/cd
-- [ ] Create tests for lambdas
-- [ ] fully configure xray
+- [X] Create tests for lambdas
+- [X] fully configure xray
 - [ ] Route53 for domain and https
 
 ## Environment configuration
@@ -31,8 +31,14 @@
 
 - You will need to ssh into the bastion host and run an initialization script onto the db server for the database to be initialized.
 
- > The init sql file is located in the compliment-api repository under the sql directory. copy it to the bastion host and run `psql -h <rds dns> -d postgres -U db_user -f init.sql`. enter the credentials when requested and the db will be initialized with tables and functions to run the serverless application.
+ > The init sql file is located under the sql directory. copy it to the bastion host and run `psql -h <rds dns> -d postgres -U db_user -f init.sql`. You will need to input the password credentials for the rds user. These credentials are stored inside AWS Parameter Store Secrets Manager. Open this service in the aws console, copy the password, and paste the password into the console.
 
 ## Deploying
 - For initial deployments, run `npm run sam:deploy:inital`. This will walk you through options for deployment and create a configuration file for later deployments.
 - For susbequent deployments, run `npm run sam:deploy` to deploy the application according sam's configuration file.
+
+## Usage
+You will need to be a user in the Cognito user pool to gather an authentication token to make http requests to the API Gateway.
+1. Open your terminal and run `aws cognito-idp sign-up --client-id <client id> --username <username> --password <password [capital and number are required]> --user-attributes Name=email,Value=<some email>`
+2. Open your terminal and run `aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH --client-id <client id found in the app client page> --user-pool-id <user pool id found in user pool general settings> --auth-parameters USERNAME=<username>,PASSWORD=<password> [>> token.json]`
+3. Use the id token in the response in the Authorization header of your requests.

@@ -12,12 +12,17 @@ expected request:
  * @returns The body for the next lambda
  */
 exports.handler = async (event, context) => {
-    const {username} = event.pathParameters;
-    return {
-        query:{},
+    console.log(`it has entered the username controller and the event is: ${JSON.stringify(event)}`)
+    const { username } = event;
+    event.body = {
+        query: {},
         meta: {},
         user: {
             username
-        }
+        },
+        
     }
+    event.result = {
+    }
+    return event;
 }
