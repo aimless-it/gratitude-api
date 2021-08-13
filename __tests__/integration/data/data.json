@@ -1,0 +1,22 @@
+[
+    {
+        "username": "testUser1",
+        "getCategories": {
+            "categories": {
+                "categories": [
+                    "sad",
+                    "mad",
+                    "glad"
+                ]
+            },
+            "status": "OK",
+            "origin": "*"
+        },
+        {
+            "username": null,
+            "categories": null,
+            "status": "Bad Request",
+            "origin": "*"
+        }
+    }
+]

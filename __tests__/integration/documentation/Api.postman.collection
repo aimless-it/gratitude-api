@@ -1,0 +1,1341 @@
+{
+	"info": {
+		"_postman_id": "2f8cbe23-7df8-4658-b659-cdba27845f52",
+		"name": "API Title",
+		"description": "Contact Support:\n Name: connellrobert",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "category/user/{username}",
+			"item": [
+				{
+					"name": "get Categories For User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('to get expected categories', () => {\r",
+									"    const json = pm.response.json();\r",
+									"    const arr = {\r",
+									"        categories: ['sad','mad','glad']\r",
+									"    }\r",
+									"    pm.expect(json).to.eql(arr)\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/category/user/:username",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"category",
+								"user",
+								":username"
+							],
+							"variable": [
+								{
+									"key": "username",
+									"value": "{{username1}}",
+									"description": "(Required) A path parameter to specify the username for a user"
+								}
+							]
+						},
+						"description": "Get the categories that a user is subscribed to"
+					},
+					"response": [
+						{
+							"name": "The categories that a user is subscribed to",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/category/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"category",
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "enim ipsum nisi nostrud",
+									"description": ""
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Bad Request",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/category/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"category",
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"error\": \"dolor dolor aliquip ex\"\n}"
+						},
+						{
+							"name": "Error due to authorization",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/category/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"category",
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username"
+										}
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "/category/user/:username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('should return a 200 response code', () => {\r",
+									"    pm.expect(pm.response.status).eql(200)\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "OPTIONS",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/category/user/:username",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"category",
+								"user",
+								":username"
+							],
+							"variable": [
+								{
+									"key": "username",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "compliment",
+			"item": [
+				{
+					"name": "user/{username}",
+					"item": [
+						{
+							"name": "get Compliment By Username",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('The response should have the expected compliment', () => {\r",
+											"    const json = pm.response.json();\r",
+											"    const res = {\r",
+											"        compliment: 'you are good'\r",
+											"    };\r",
+											"    pm.expect(json).to.eql(res)\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/compliment/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"compliment",
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username",
+											"value": "{{username1}}",
+											"description": "(Required) A path parameter to specify the username for a user"
+										}
+									]
+								},
+								"description": "Get a compliment given the users username"
+							},
+							"response": [
+								{
+									"name": "The generated compliment",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/compliment/user/:username",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"compliment",
+												"user",
+												":username"
+											],
+											"variable": [
+												{
+													"key": "username"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "enim ipsum nisi nostrud",
+											"description": ""
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"compliment\": \"dolore fugiat mollit\"\n}"
+								},
+								{
+									"name": "The username was not valid",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/compliment/user/:username",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"compliment",
+												"user",
+												":username"
+											],
+											"variable": [
+												{
+													"key": "username"
+												}
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"error\": \"dolor dolor aliquip ex\"\n}"
+								},
+								{
+									"name": "Error due to authorization",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/compliment/user/:username",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"compliment",
+												"user",
+												":username"
+											],
+											"variable": [
+												{
+													"key": "username"
+												}
+											]
+										}
+									},
+									"status": "Forbidden",
+									"code": 403,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "/compliment/user/:username",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('should return a 200 response code', () => {\r",
+											"    pm.expect(pm.response.status).eql(200)\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/compliment/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"compliment",
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "{category}",
+					"item": [
+						{
+							"name": "get Compliment By Category And Personality Type",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('response body', () => {\r",
+											"    const json = pm.response.json();\r",
+											"    const res = {\r",
+											"        compliment: 'you are good'\r",
+											"    };\r",
+											"    pm.expect(json).to.eql(res)\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/compliment/:category?feeling={{feeling}}&judging={{judging}}&introversion={{introversion}}&sensing={{sensing}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"compliment",
+										":category"
+									],
+									"query": [
+										{
+											"key": "feeling",
+											"value": "{{feeling}}",
+											"description": "(Required) A query parameter to specify the feeling attribute for personality types"
+										},
+										{
+											"key": "judging",
+											"value": "{{judging}}",
+											"description": "(Required) A query parameter to specify the judging attribute for personality types"
+										},
+										{
+											"key": "introversion",
+											"value": "{{introversion}}",
+											"description": "(Required) A query parameter to specify the introversion attribute for personality types"
+										},
+										{
+											"key": "sensing",
+											"value": "{{sensing}}",
+											"description": "(Required) A query parameter to specify the sensing attribute for personality types"
+										}
+									],
+									"variable": [
+										{
+											"key": "category",
+											"value": "{{category1}}",
+											"description": "(Required) A path parameter to specify the category for a compliment"
+										}
+									]
+								},
+								"description": "Get a compliment given the category and personality type"
+							},
+							"response": [
+								{
+									"name": "The returned compliment",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/compliment/:category?feeling=enim ipsum nisi nostrud&judging=enim ipsum nisi nostrud&introversion=enim ipsum nisi nostrud&sensing=enim ipsum nisi nostrud",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"compliment",
+												":category"
+											],
+											"query": [
+												{
+													"key": "feeling",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "judging",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "introversion",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "sensing",
+													"value": "enim ipsum nisi nostrud"
+												}
+											],
+											"variable": [
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "enim ipsum nisi nostrud",
+											"description": ""
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"compliment\": \"dolore fugiat mollit\"\n}"
+								},
+								{
+									"name": "Bad Request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/compliment/:category?feeling=enim ipsum nisi nostrud&judging=enim ipsum nisi nostrud&introversion=enim ipsum nisi nostrud&sensing=enim ipsum nisi nostrud",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"compliment",
+												":category"
+											],
+											"query": [
+												{
+													"key": "feeling",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "judging",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "introversion",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "sensing",
+													"value": "enim ipsum nisi nostrud"
+												}
+											],
+											"variable": [
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"error\": \"dolor dolor aliquip ex\"\n}"
+								},
+								{
+									"name": "Error due to authorization",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/compliment/:category?feeling=enim ipsum nisi nostrud&judging=enim ipsum nisi nostrud&introversion=enim ipsum nisi nostrud&sensing=enim ipsum nisi nostrud",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"compliment",
+												":category"
+											],
+											"query": [
+												{
+													"key": "feeling",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "judging",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "introversion",
+													"value": "enim ipsum nisi nostrud"
+												},
+												{
+													"key": "sensing",
+													"value": "enim ipsum nisi nostrud"
+												}
+											],
+											"variable": [
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "Forbidden",
+									"code": 403,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "/compliment/:category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('should return a 200 response code', () => {\r",
+											"    pm.expect(pm.response.status).eql(200)\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/compliment/:category",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"compliment",
+										":category"
+									],
+									"variable": [
+										{
+											"key": "category",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "user/{username}",
+			"item": [
+				{
+					"name": "category/{category}",
+					"item": [
+						{
+							"name": "subscribe User To Category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('response body', () => {\r",
+											"    const json = pm.response.json();\r",
+											"    const res = {\r",
+											"        categories: [\r",
+											"            'sad',\r",
+											"            'glad'\r",
+											"        ]\r",
+											"    };\r",
+											"    pm.expect(json).to.eql(res)\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/user/:username/category/:category",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										":username",
+										"category",
+										":category"
+									],
+									"variable": [
+										{
+											"key": "username",
+											"value": "{{username2}}",
+											"description": "(Required) A path parameter to specify the username for a user"
+										},
+										{
+											"key": "category",
+											"value": "{{category3}}",
+											"description": "(Required) A path parameter to specify the category for a compliment"
+										}
+									]
+								},
+								"description": "Subscribe a user to a category"
+							},
+							"response": [
+								{
+									"name": "The user has been subscribed and the new categories are returned",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/user/:username/category/:category",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												":username",
+												"category",
+												":category"
+											],
+											"variable": [
+												{
+													"key": "username"
+												},
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "enim ipsum nisi nostrud",
+											"description": ""
+										},
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "The username or category was incorrect",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/user/:username/category/:category",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												":username",
+												"category",
+												":category"
+											],
+											"variable": [
+												{
+													"key": "username"
+												},
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Error due to authorization",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/user/:username/category/:category",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												":username",
+												"category",
+												":category"
+											],
+											"variable": [
+												{
+													"key": "username"
+												},
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "Forbidden",
+									"code": 403,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "unsubscribe User From Category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('response data', () => {\r",
+											"    const json = pm.response.json();\r",
+											"    const res = {\r",
+											"        categories: [\r",
+											"            'sad',\r",
+											"            'mad'\r",
+											"        ]\r",
+											"    };\r",
+											"    pm.expect(json).to.eql(res);\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/user/:username/category/:category",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										":username",
+										"category",
+										":category"
+									],
+									"variable": [
+										{
+											"key": "username",
+											"value": "{{username1}}",
+											"description": "(Required) A path parameter to specify the username for a user"
+										},
+										{
+											"key": "category",
+											"value": "{{category3}}",
+											"description": "(Required) A path parameter to specify the category for a compliment"
+										}
+									]
+								},
+								"description": "Unsubscribe a user from a category"
+							},
+							"response": [
+								{
+									"name": "The user has successfully unsubscribed from the category and is returning the new category list",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/user/:username/category/:category",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												":username",
+												"category",
+												":category"
+											],
+											"variable": [
+												{
+													"key": "username"
+												},
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "enim ipsum nisi nostrud",
+											"description": ""
+										},
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "The username or category was incorrect",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/user/:username/category/:category",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												":username",
+												"category",
+												":category"
+											],
+											"variable": [
+												{
+													"key": "username"
+												},
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Error due to authorization",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/user/:username/category/:category",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												":username",
+												"category",
+												":category"
+											],
+											"variable": [
+												{
+													"key": "username"
+												},
+												{
+													"key": "category"
+												}
+											]
+										}
+									},
+									"status": "Forbidden",
+									"code": 403,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "/user/:username/category/:category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('should return a 200 response code', () => {\r",
+											"    pm.expect(pm.response.status).eql(200)\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/user/:username/category/:category",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										":username",
+										"category",
+										":category"
+									],
+									"variable": [
+										{
+											"key": "username",
+											"value": ""
+										},
+										{
+											"key": "category",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "get User Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response data', () => {\r",
+									"    const json = pm.response.json();\r",
+									"    const res = {\r",
+									"    username: \"testUser1\",\r",
+									"    email: \"user1@email.com\",\r",
+									"    givenName: \"\",\r",
+									"    familyName: \"\",\r",
+									"    dob: \"\",\r",
+									"    ethnicity: \"\",\r",
+									"    gender: \"m\",\r",
+									"    locale: \"EN-US \",\r",
+									"    phoneNumber: \"\",\r",
+									"    personalityType: {\r",
+									"        sensing: \"yes\",\r",
+									"        introversion: \"any\",\r",
+									"        judging: \"yes\",\r",
+									"        feeling: \"yes\"\r",
+									"    }\r",
+									"};\r",
+									"    pm.expect(json).to.eql(res);\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/:username",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								":username"
+							],
+							"variable": [
+								{
+									"key": "username",
+									"value": "{{username1}}",
+									"description": "(Required) A path parameter to specify the username for a user"
+								}
+							]
+						},
+						"description": "Get a users information given the username"
+					},
+					"response": [
+						{
+							"name": "The returned user",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "enim ipsum nisi nostrud",
+									"description": ""
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"username\": \"in Ut\",\n \"personalityType\": {\n  \"feeling\": \"Duis irure Ut fugiat\",\n  \"introversion\": \"ut reprehenderit aliquip\",\n  \"judging\": \"velit elit officia aute\",\n  \"sensing\": \"incididunt ipsum\",\n  \"id\": -65120964\n },\n \"phoneNumber\": \"magna do fug\",\n \"gender\": \"laborum\",\n \"ethnicity\": \"incididunt magna nostrud exercitation\",\n \"dob\": \"1948-10-27\",\n \"familyName\": \"sunt quis Excepteur\",\n \"givenName\": \"nulla ullamco sint\",\n \"id\": -74121878,\n \"locale\": \"sit \",\n \"email\": \"keieWT@uqkqvRuAmXqVJYaVpkhlxVLe.dnj\"\n}"
+						},
+						{
+							"name": "Bad Request",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"error\": \"dolor dolor aliquip ex\"\n}"
+						},
+						{
+							"name": "Error due to authorization",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/user/:username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										":username"
+									],
+									"variable": [
+										{
+											"key": "username"
+										}
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "/user/:username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('should return a 200 response code', () => {\r",
+									"    pm.expect(pm.response.status).eql(200)\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "OPTIONS",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/:username",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								":username"
+							],
+							"variable": [
+								{
+									"key": "username",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJraWQiOiJqSjRoWUs2NXJXYU5zOG5CY0hSTVdtQmlsbUUxV0pLTFAxQ1NiZCsxeUVZPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI1Y2YzNmRiNy0xMGFmLTQ1NTgtYjAxOS04NGM3Nzc3YjA3NDMiLCJjb2duaXRvOmdyb3VwcyI6WyJBZG1pbiJdLCJjb2duaXRvOnByZWZlcnJlZF9yb2xlIjoiYXJuOmF3czppYW06Ojc3Mzk1MTI5NDM5MTpyb2xlXC9ncmF0aXR1ZGUtdHJpYWwtQXV0aFN0YWNrLTEwVUVSN0kzS0QtQWRtaW5BdXRoUm9sZS1XVjcwVlA4S0wxTEMiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9xcW9HckZObHgiLCJjb2duaXRvOnVzZXJuYW1lIjoiY29ubmVsbHJvYmVydCIsIm9yaWdpbl9qdGkiOiJjOTQ4NzE5Zi0zMjYwLTQ1MGMtOWJjYy0yNjJkOTg2Yzc4Y2EiLCJjb2duaXRvOnJvbGVzIjpbImFybjphd3M6aWFtOjo3NzM5NTEyOTQzOTE6cm9sZVwvZ3JhdGl0dWRlLXRyaWFsLUF1dGhTdGFjay0xMFVFUjdJM0tELUFkbWluQXV0aFJvbGUtV1Y3MFZQOEtMMUxDIl0sImF1ZCI6IjIxMTRpanVwNGNmbWhpa3JxYXJnY2MxMDE0IiwiZXZlbnRfaWQiOiJiMjE3ZmZiZS0wNWQwLTQ1YWEtOTkyZS05MzEwZTBhOWM3ZmQiLCJ0b2tlbl91c2UiOiJpZCIsImF1dGhfdGltZSI6MTYyODMwNzcxOSwiZXhwIjoxNjI4NDU0MTMwLCJpYXQiOjE2MjgzODIxMzAsImp0aSI6IjBlZTNhNjFlLWUzZTgtNDg2OS1iNjUyLTc4MmVhN2FjYTAxMCJ9.2xUIhs3IXUY0so2zjv1gMMrkejBmmSFcSsdAEe2jsbp4a3lSzx-LCHAoygYo3-DpgIXWxK-76OzfV5jUzN-u_cgMwh2pDWIyuTXd2HZgsoYPSHTl4nZIqO7rUgxvN2lO_FNjsQkIyNnT5q-2xnpsuT5dXk88c_kuNzWl122yr-PGH5EaAKJ9LbvlMuKT2iq5dfCpwGgTJFbEBTRSLhQ-jUA9Y1-W5AxY6RtM--DQnlBq15soF01i6B6K-AOBPazGIsiX7pkFImWClf6Byp4JExMsun8Vc5qaRLTmBitdGOV3VEGhli1N8pkSV6hJRPKy8U6NFT7KAkf4A4LA0AIIGQ",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://qths2hwy63.execute-api.us-east-1.amazonaws.com/dev/"
+		},
+		{
+			"key": "username1",
+			"value": "testUser1"
+		},
+		{
+			"key": "username2",
+			"value": "testUser2"
+		},
+		{
+			"key": "username3",
+			"value": "testUser3"
+		},
+		{
+			"key": "category1",
+			"value": "sad"
+		},
+		{
+			"key": "category3",
+			"value": "glad"
+		},
+		{
+			"key": "sensing",
+			"value": "yes"
+		},
+		{
+			"key": "introversion",
+			"value": "any"
+		},
+		{
+			"key": "feeling",
+			"value": "yes"
+		},
+		{
+			"key": "judging",
+			"value": "yes"
+		}
+	]
+}
