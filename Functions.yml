@@ -224,6 +224,21 @@ Resources:
       Timeout: 5
       Tags:
         compliment: controller-username
+  errorHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda for catching errors during runtime
+      FunctionName: errorHandlerFunction
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command:
+          - index.handlers.errorHandlerFunction
+      MemorySize: 128
+      Tracing: Active
+      Timeout: 5
+      Tags:
+        compliment: errorHandlerFunction
   # END: Functions
 Outputs:
   cognitoInsertTriggerArn:
@@ -276,3 +291,8 @@ Outputs:
     Description: The ARN of the usernameExtractorControllerFunction function
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
+  errorHanlderFunctionArn:
+    Value: !GetAtt errorHandlerFunction.Arn
+    Description: The ARN of the errorHandlerFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"

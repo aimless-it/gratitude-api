@@ -14,15 +14,29 @@ expected request:
 exports.handler = async (event, context) => {
     console.log(`it has entered the username controller and the event is: ${JSON.stringify(event)}`)
     const { username } = event;
-    event.body = {
-        query: {},
-        meta: {},
-        user: {
-            username
-        },
-        
+    try {
+        if(!username){
+            throw new Error(`Attribute provided is undefined: ${JSON.stringify({username, event})}`)
+        }
+        event.body = {
+            query: {},
+            meta: {},
+            user: {
+                username
+            },
+            
+        }
+        event.result = {
+        }
+        return event;
+    }catch (err) {
+        event.result = {
+            fail: true,
+            error: err.message,
+            reason: 'Client provided invalid parameters',
+            status: 400
+        };
+        return event;
     }
-    event.result = {
-    }
-    return event;
+    
 }

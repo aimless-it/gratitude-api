@@ -11,12 +11,19 @@
             },
             "status": "OK",
             "origin": "*"
-        },
-        {
-            "username": null,
-            "categories": null,
-            "status": "Bad Request",
-            "origin": "*"
+        }
+        
+    },
+    {
+        "username":null,
+        "getCategories":{
+            "categories":{
+                "categories":[
+
+                ]
+            },
+            "status":"BAD REQUEST",
+            "origin":"*"
         }
     }
 ]

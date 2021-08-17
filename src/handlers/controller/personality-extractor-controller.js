@@ -12,22 +12,38 @@ expected request:
  * @returns The body for the next lambda
  */
 exports.handler = async (event, context) => {
-    const {feeling, introversion, judging, sensing, category} = event;
-    event.body = {
-        query: {
-            category,
-            personalityType: {
-                sensing,
-                introversion,
-                feeling,
-                judging
+    try{
+        const {feeling, introversion, judging, sensing, category} = event;
+        for(let att of [feeling, introversion, judging, sensing, category]){
+            if(!att){
+                throw new Error(`Attribute provided is undefined: ${JSON.stringify({feeling, introversion, judging, sensing, category, event})}`)
             }
-        },
-        meta: {},
-        user: {},
-        
+        }
+        event.body = {
+            query: {
+                category,
+                personalityType: {
+                    sensing,
+                    introversion,
+                    feeling,
+                    judging
+                }
+            },
+            meta: {},
+            user: {},
+            
+        }
+        event.result = {
+        }
+        return event;
+    } catch (err) {
+        event.result = {
+            fail: true,
+            error: err.message,
+            reason: 'Client provided invalid parameters',
+            statusCode: 400
+        };
+        return event;
     }
-    event.result = {
-    }
-    return event;
+    
 }

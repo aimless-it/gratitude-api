@@ -65,6 +65,14 @@ Resources:
         ENV: !Ref ENV
         az: !FindInMap [ AvailabilityZones, !Ref AWS::Region, 'a' ]
 
+  MonitoringStack:
+    Type: AWS::Serverless::Application
+    DeletionPolicy: Delete
+    Properties:
+      Location: Monitoring.yml
+      Parameters:
+        ENV: !Ref ENV
+
   FunctionStack:
     Type: AWS::Serverless::Application
     DependsOn: PersistenceStack
@@ -76,7 +84,9 @@ Resources:
 
   IntegrationsStack:
     Type: AWS::Serverless::Application
-    DependsOn: AuthStack
+    DependsOn: 
+      - AuthStack
+      - MonitoringStack
     DeletionPolicy: Delete
     Properties:
       Location: Integrations.yml
