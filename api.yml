@@ -65,6 +65,18 @@ components:
       properties:
         compliment:
           type: string
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    Categories:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            type: string
   parameters:
     sensingQuery:
       in: query
@@ -108,30 +120,14 @@ components:
         required: true
         schema:
           type: string
-  requestBodies:
-    userCategoryRequest:
-      description: An object with the user's username and the category name
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              username:
-                type: string
-              category:
-                type: string
+  
   responses:
     default400:
       description: Bad Request
       content:
         application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                format: character
+          schema: 
+            $ref: '#/components/schemas/Error'
   securitySchemes:
     CognitoAuth:
       type: apiKey
@@ -180,7 +176,7 @@ paths:
           content:
             application/json:
               schema:
-                  type: string
+                $ref: '#/components/schemas/Error'
         '400':
           $ref: "#/components/responses/default400"
       security:
@@ -271,7 +267,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '400':
           $ref: '#/components/responses/default400'
       security:
@@ -337,20 +333,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Compliment'
         '400':
-          description: The username was not valid
-          content:
-            application/json:
-              schema:
-                type : object
-                properties:
-                  error:
-                    type: string
+          $ref: '#/components/responses/default400'
         '403':
           description: Error due to authorization
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
       security:
         - CognitoAuth: []
       x-amazon-apigateway-integration:
@@ -412,15 +401,13 @@ paths:
           content:
             application/json:    
               schema:
-                type: object
-                properties:
-                  categories:
-                    type: array
-                    items:
-                      type: string
+                $ref: '#/components/schemas/Categories'
         '403':
           description: Error due to authorization
-          content: {}
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '400':
           $ref: '#/components/responses/default400'
       security:
@@ -495,18 +482,15 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  categories:
-                    type: array
-                    items:
-                      type: string
+                $ref: '#/components/schemas/Categories'
         '403':
           description: Error due to authorization
-          content: {}
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '400':
-          description: The username or category was incorrect
-          content: {}
+          $ref: '#/components/responses/default400'
       security:
         - CognitoAuth: []
       x-amazon-apigateway-integration:
@@ -560,18 +544,15 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  categories:
-                    type: array
-                    items:
-                      type: string
+                $ref: '#/components/schemas/Categories'
         '403':
           description: Error due to authorization
-          content: {}
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '400':
-          description: The username or category was incorrect
-          content: {}
+          $ref: '#/components/responses/default400'
       security:
         - CognitoAuth: []
       x-amazon-apigateway-integration:
