@@ -43,7 +43,7 @@ Resources:
                 !Sub "gratitude:${AWS::Region}:${ENV}:secretDBMasterCreds"
       MultiAZ: false
       Port: "5432"
-      PubliclyAccessible: true
+      PubliclyAccessible: false
       StorageEncrypted: false
       StorageType: gp2
       VPCSecurityGroups:
@@ -87,9 +87,9 @@ Resources:
           !Sub "gratitude:${AWS::Region}:${ENV}:DBProxyRole:Arn"
       VpcSubnetIds:
         - Fn::ImportValue:
-            !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
-        - Fn::ImportValue:
             !Sub "gratitude:${AWS::Region}:${ENV}:subnet2"
+        - Fn::ImportValue:
+            !Sub "gratitude:${AWS::Region}:${ENV}:subnet3"
       VpcSecurityGroupIds:
         - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:dbGroupId"
       Auth:

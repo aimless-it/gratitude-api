@@ -23,9 +23,10 @@ Globals:
           "REGION": !Sub "${AWS::Region}"
     VpcConfig:
         SecurityGroupIds:
-          - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:pubGroupId"
+          - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:privGroupId"
         SubnetIds:
-          - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:subnet1"
+          - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:subnet2"
+          - Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:subnet3"
 Resources:
   LambdaRole:
     Type: AWS::IAM::Role

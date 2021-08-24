@@ -84,10 +84,6 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           IpProtocol: tcp
-        - SourceSecurityGroupId: !Ref bastionGroup
-          FromPort: 5432
-          ToPort: 5432
-          IpProtocol: tcp
       SecurityGroupEgress:
         - IpProtocol: tcp
           FromPort: 0

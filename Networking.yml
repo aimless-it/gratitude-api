@@ -115,7 +115,6 @@ Resources:
       DBSubnetGroupDescription: A group of subnets for the rds to reside in
       DBSubnetGroupName: !Sub "${AWS::Region}:${ENV}:Sub-RDS"
       SubnetIds:
-        - !Ref sub1
         - !Ref sub2
         - !Ref sub3
   # END: Networking

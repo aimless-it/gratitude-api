@@ -63,7 +63,7 @@ Resources:
       Location: Persistence.yml
       Parameters:
         ENV: !Ref ENV
-        az: !FindInMap [ AvailabilityZones, !Ref AWS::Region, 'a' ]
+        az: !FindInMap [ AvailabilityZones, !Ref AWS::Region, 'b' ]
 
   MonitoringStack:
     Type: AWS::Serverless::Application
