@@ -12,16 +12,30 @@ expected request:
  */
 exports.handler = async (event, context) => {
     const {username, category} = event;
-    event.body = {
-        query: {},
-        meta: {},
-        user: {
-            username,
-            category
-        },
-        
+    try {
+        if(!username || !category){
+            throw new Error(`Attribute provided is undefined: ${JSON.stringify({username, category, event})}`)
+        }
+        event.body = {
+            query: {},
+            meta: {},
+            user: {
+                username,
+                category
+            },
+            
+        }
+        event.result = {
+        }
+        return event;
+    }catch (err) {
+        event.result = {
+            fail: true,
+            error: err.message,
+            reason: 'Client provided invalid parameters',
+            statusCode: 400
+        };
+        return event;
     }
-    event.result = {
-    }
-    return event;
+    
 }

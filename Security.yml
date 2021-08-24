@@ -134,6 +134,20 @@ Resources:
                   # - !GetAtt personalityExtractorControllerFunction.Arn
                   # - !GetAtt usernameExtractorControllerFunction.Arn
                   # - !GetAtt userCategoryExtractorControllerFunction.Arn
+        - PolicyName: stateLoggingPolicy
+          PolicyDocument:
+            Statement: 
+              - Effect: Allow
+                Action: 
+                  - logs:CreateLogDelivery
+                  - logs:GetLogDelivery
+                  - logs:UpdateLogDelivery
+                  - logs:DeleteLogDelivery
+                  - logs:ListLogDeliveries
+                  - logs:PutResourcePolicy
+                  - logs:DescribeResourcePolicies
+                  - logs:DescribeLogGroups
+                Resource: '*'
   DBProxyRole:
     Type: AWS::IAM::Role
     Properties:

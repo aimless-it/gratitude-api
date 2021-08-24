@@ -9,6 +9,7 @@ const getComplimentFunction = require('./handlers/db/compliments/get-compliment-
 const UserCreationTrigger = require('./handlers/db/triggers/create-user-cognito-trigger').handler;
 const getUserFunction = require('./handlers/db/user/get-user-by-username').handler;
 const updateUserFunction = require('./handlers/db/user/update-user-by-username').handler;
+const errorHandlerFunction = require('./handlers/error/default-error-handler').handler;
 
 
 module.exports.handlers = {
@@ -22,5 +23,6 @@ module.exports.handlers = {
     getUserComplimentFunction,
     UserCreationTrigger,
     getUserFunction,
-    updateUserFunction
+    updateUserFunction,
+    errorHandlerFunction
 }

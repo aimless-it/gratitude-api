@@ -1,0 +1,710 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "title": "API Title",
+      "contact": {
+        "name": "connellrobert"
+      },
+      "version": "1.0"
+    },
+    "servers": [
+      {
+        "url": "https://qths2hwy63.execute-api.us-east-1.amazonaws.com/{basePath}",
+        "variables": {
+          "basePath": {
+            "default": "/dev"
+          }
+        }
+      }
+    ],
+    "tags": [
+      {
+        "name": "purpose",
+        "description": "api gateway for gratitude api"
+      }
+    ],
+    "paths": {
+      "/category/user/{username}": {
+        "get": {
+          "tags": [
+            "get category for a user"
+          ],
+          "description": "Get the categories that a user is subscribed to",
+          "operationId": "getCategoriesForUser",
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The categories that a user is subscribed to",
+              "headers": {
+                "Access-Control-Allow-Origin": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MODEL028cec"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MODEL05a77c"
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Error due to authorization",
+              "content": {}
+            }
+          },
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        },
+        "options": {
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        }
+      },
+      "/user/{username}/category/{category}": {
+        "post": {
+          "tags": [
+            "subscribe user to category"
+          ],
+          "description": "Subscribe a user to a category",
+          "operationId": "subscribeUserToCategory",
+          "parameters": [
+            {
+              "name": "category",
+              "in": "path",
+              "description": "A path parameter to specify the category for a compliment",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The user has been subscribed and the new categories are returned",
+              "headers": {
+                "Access-Control-Allow-Origin": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MODEL5375d2"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "The username or category was incorrect",
+              "content": {}
+            },
+            "403": {
+              "description": "Error due to authorization",
+              "content": {}
+            }
+          },
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        },
+        "delete": {
+          "tags": [
+            "unsubscribe a user from a category"
+          ],
+          "description": "Unsubscribe a user from a category",
+          "operationId": "unsubscribeUserFromCategory",
+          "parameters": [
+            {
+              "name": "category",
+              "in": "path",
+              "description": "A path parameter to specify the category for a compliment",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The user has successfully unsubscribed from the category and is returning the new category list",
+              "headers": {
+                "Access-Control-Allow-Origin": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MODEL0bf9ec"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "The username or category was incorrect",
+              "content": {}
+            },
+            "403": {
+              "description": "Error due to authorization",
+              "content": {}
+            }
+          },
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        },
+        "options": {
+          "parameters": [
+            {
+              "name": "category",
+              "in": "path",
+              "description": "A path parameter to specify the category for a compliment",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        }
+      },
+      "/compliment/{category}": {
+        "get": {
+          "tags": [
+            "get compliment by category and personality type"
+          ],
+          "description": "Get a compliment given the category and personality type",
+          "operationId": "getComplimentByCategoryAndPersonalityType",
+          "parameters": [
+            {
+              "name": "category",
+              "in": "path",
+              "description": "A path parameter to specify the category for a compliment",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "feeling",
+              "in": "query",
+              "description": "A query parameter to specify the feeling attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "judging",
+              "in": "query",
+              "description": "A query parameter to specify the judging attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "introversion",
+              "in": "query",
+              "description": "A query parameter to specify the introversion attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "sensing",
+              "in": "query",
+              "description": "A query parameter to specify the sensing attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The returned compliment",
+              "headers": {
+                "Access-Control-Allow-Origin": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Compliment"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MODEL640aeb"
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Error due to authorization",
+              "content": {}
+            }
+          },
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        },
+        "options": {
+          "parameters": [
+            {
+              "name": "category",
+              "in": "path",
+              "description": "A path parameter to specify the category for a compliment",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "feeling",
+              "in": "query",
+              "description": "A query parameter to specify the feeling attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "judging",
+              "in": "query",
+              "description": "A query parameter to specify the judging attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "introversion",
+              "in": "query",
+              "description": "A query parameter to specify the introversion attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "sensing",
+              "in": "query",
+              "description": "A query parameter to specify the sensing attribute for personality types",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        }
+      },
+      "/user/{username}": {
+        "get": {
+          "tags": [
+            "get user information"
+          ],
+          "description": "Get a users information given the username",
+          "operationId": "getUserInfo",
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The returned user",
+              "headers": {
+                "Access-Control-Allow-Origin": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MODEL6025be"
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Error due to authorization",
+              "content": {}
+            }
+          },
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        },
+        "options": {
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        }
+      },
+      "/compliment/user/{username}": {
+        "get": {
+          "tags": [
+            "get compliment by username"
+          ],
+          "description": "Get a compliment given the users username",
+          "operationId": "getComplimentByUsername",
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The generated compliment",
+              "headers": {
+                "Access-Control-Allow-Origin": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Compliment"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "The username was not valid",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MODEL37379b"
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Error due to authorization",
+              "content": {}
+            }
+          },
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        },
+        "options": {
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "A path parameter to specify the username for a user",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "security": [
+            {
+              "CognitoAuth": []
+            }
+          ]
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "MODEL640aeb": {
+          "type": "object",
+          "properties": {
+            "error": {
+              "type": "string",
+              "format": "character"
+            }
+          }
+        },
+        "User": {
+          "required": [
+            "username"
+          ],
+          "type": "object",
+          "properties": {
+            "personalityType": {
+              "required": [
+                "feeling",
+                "introversion",
+                "judging",
+                "sensing"
+              ],
+              "type": "object",
+              "properties": {
+                "sensing": {
+                  "type": "string"
+                },
+                "introversion": {
+                  "type": "string"
+                },
+                "judging": {
+                  "type": "string"
+                },
+                "feeling": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "phoneNumber": {
+              "type": "string",
+              "format": "telephone"
+            },
+            "gender": {
+              "type": "string",
+              "format": "character"
+            },
+            "ethnicity": {
+              "type": "string"
+            },
+            "dob": {
+              "type": "string",
+              "format": "date"
+            },
+            "familyName": {
+              "type": "string"
+            },
+            "givenName": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "locale": {
+              "type": "string",
+              "format": "i8nSpecification"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "username": {
+              "type": "string"
+            }
+          }
+        },
+        "MODEL028cec": {
+          "type": "object",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "MODEL0bf9ec": {
+          "type": "object",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "MODEL6025be": {
+          "type": "object",
+          "properties": {
+            "error": {
+              "type": "string",
+              "format": "character"
+            }
+          }
+        },
+        "MODEL5375d2": {
+          "type": "object",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "MODEL37379b": {
+          "type": "object",
+          "properties": {
+            "error": {
+              "type": "string"
+            }
+          }
+        },
+        "MODEL05a77c": {
+          "type": "object",
+          "properties": {
+            "error": {
+              "type": "string",
+              "format": "character"
+            }
+          }
+        },
+        "Compliment": {
+          "type": "object",
+          "properties": {
+            "compliment": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "CognitoAuth": {
+          "type": "apiKey",
+          "name": "Authorization",
+          "in": "header",
+          "x-amazon-apigateway-authtype": "cognito_user_pools"
+        }
+      }
+    }
+  }

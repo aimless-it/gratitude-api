@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+Parameters:
+  ENV:
+    Type: String
+    Description: The environment staging name
+    Default: dev
+Mappings:
+  RetentionTimes:
+    times:
+      dev: 30
+      testing: 7
+      prod: 365
+
+Resources:
+  getUserWorkflowLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "gratitude-${ENV}-logs-getUserWorkFlow"
+      RetentionInDays: !FindInMap [ RetentionTimes, times, Ref: ENV ]
+
+  getComplimentByCategoryWorkflowLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "gratitude-${ENV}-logs-getComplimentByCategoryWorkflow"
+      RetentionInDays: !FindInMap [RetentionTimes, times, Ref: ENV]
+  
+  getComplimentByUsernameWorkflowLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "gratitude-${ENV}-logs-getComplimentByUsernameWorkflow"
+      RetentionInDays: !FindInMap [ RetentionTimes, times, Ref: ENV ]
+    
+  getCategoriesForUserWorkflowLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "gratitude-${ENV}-logs-getCategoriesForUserWorkflow"
+      RetentionInDays: !FindInMap [ RetentionTimes, times, Ref: ENV ]
+    
+  postUserCategoryWorkflowLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "gratitude-${ENV}-logs-postUserCategoryWorkflow"
+      RetentionInDays: !FindInMap [ RetentionTimes, times, Ref: ENV ]
+    
+  deleteUserCategoryWorkflowLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "gratitude-${ENV}-logs-deleteUserCategoryWorkflow"
+      RetentionInDays: !FindInMap [ RetentionTimes, times, Ref: ENV ]
+
+Outputs:
+  getUserWorkflowLogsArn:
+    Value: !GetAtt getUserWorkflowLogs.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getUserWorkflowLogs:Arn"
+  getComplimentByCategoryWorkflowLogsArn:
+    Value: !GetAtt getComplimentByCategoryWorkflowLogs.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getComplimentByCategoryWorkflowLogs:Arn"
+
+  getComplimentByUsernameWorkflowLogsArn:
+    Value: !GetAtt getComplimentByUsernameWorkflowLogs.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getComplimentByUsernameWorkflowLogs:Arn"
+
+  getCategoriesForUserWorkflowLogsArn:
+    Value: !GetAtt getCategoriesForUserWorkflowLogs.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:getCategoriesForUserWorkflowLogs:Arn"
+
+  postUserCategoryWorkflowLogsArn:
+    Value: !GetAtt postUserCategoryWorkflowLogs.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:postUserCategoryWorkflowLogs:Arn"
+
+  deleteUserCategoryWorkflowLogsArn:
+    Value: !GetAtt deleteUserCategoryWorkflowLogs.Arn
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:deleteUserCategoryWorkflowLogs:Arn"

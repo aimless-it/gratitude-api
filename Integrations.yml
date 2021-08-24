@@ -6,6 +6,12 @@ Parameters:
     Type: String
     Description: The environment staging name
     Default: dev
+Mappings:
+  LoggingLevels:
+    levels:
+      dev: ALL
+      testing: ALL
+      prod: ERROR
 Resources:
   # BEGIN: Integration
   apiRole:
@@ -55,15 +61,38 @@ Resources:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
-            Next: service
+            Next: errorHandler
           service:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getUserFunction:Arn"
             End: true
+          errorHandler:
+            Type: Choice
+            Choices:
+              - And:
+                - Variable: $.result.fail
+                  IsPresent: true
+                - Variable: $.result.fail
+                  BooleanEquals: true
+                Next: errState
+            Default: service
+          errState:
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"
+            End: true
         StartAt: controller
       Tracing:
         Enabled: true
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup: 
+              LogGroupArn:
+                Fn::ImportValue:
+                  !Sub "gratitude:${AWS::Region}:${ENV}:getUserWorkflowLogs:Arn"
+        IncludeExecutionData: true
+        Level: !FindInMap [ LoggingLevels, levels, Ref: ENV ]
       Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
@@ -83,15 +112,38 @@ Resources:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:personalityExtractorControllerFunction:Arn"
-            Next: service
+            Next: errorHandler
           service:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomComplimentFunction:Arn"
             End: true
+          errorHandler:
+            Type: Choice
+            Choices:
+              - And:
+                - Variable: $.result.fail
+                  IsPresent: true
+                - Variable: $.result.fail
+                  BooleanEquals: true
+                Next: errState
+            Default: service
+          errState:
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"
+            End: true
         StartAt: controller
       Tracing:
         Enabled: true
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup: 
+              LogGroupArn:
+                Fn::ImportValue:
+                  !Sub "gratitude:${AWS::Region}:${ENV}:getComplimentByCategoryWorkflowLogs:Arn"
+        IncludeExecutionData: true
+        Level: !FindInMap [ LoggingLevels, levels, Ref: ENV ]
       Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
@@ -111,15 +163,38 @@ Resources:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
-            Next: service
+            Next: errorHandler
           service:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getRandomUserComplimentFunction:Arn"
             End: true
+          errorHandler:
+            Type: Choice
+            Choices:
+              - And:
+                - Variable: $.result.fail
+                  IsPresent: true
+                - Variable: $.result.fail
+                  BooleanEquals: true
+                Next: errState
+            Default: service
+          errState:
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"
+            End: true
         StartAt: controller
       Tracing:
         Enabled: true
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup: 
+              LogGroupArn:
+                Fn::ImportValue:
+                  !Sub "gratitude:${AWS::Region}:${ENV}:getComplimentByUsernameWorkflowLogs:Arn"
+        IncludeExecutionData: true
+        Level: !FindInMap [ LoggingLevels, levels, Ref: ENV ]
       Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
@@ -139,15 +214,38 @@ Resources:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
-            Next: service
+            Next: errorHandler
           service:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:getCategoryFunction:Arn"
             End: true
+          errorHandler:
+            Type: Choice
+            Choices:
+              - And:
+                - Variable: $.result.fail
+                  IsPresent: true
+                - Variable: $.result.fail
+                  BooleanEquals: true
+                Next: errState
+            Default: service
+          errState:
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"
+            End: true
         StartAt: controller
       Tracing:
         Enabled: true
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup: 
+              LogGroupArn:
+                Fn::ImportValue:
+                  !Sub "gratitude:${AWS::Region}:${ENV}:getCategoriesForUserWorkflowLogs:Arn"
+        IncludeExecutionData: true
+        Level: !FindInMap [ LoggingLevels, levels, Ref: ENV ]
       Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
@@ -167,15 +265,38 @@ Resources:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
-            Next: service
+            Next: errorHandler
           service:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:addCategoryFunction:Arn"
             End: true
+          errorHandler:
+            Type: Choice
+            Choices:
+              - And:
+                - Variable: $.result.fail
+                  IsPresent: true
+                - Variable: $.result.fail
+                  BooleanEquals: true
+                Next: errState
+            Default: service
+          errState:
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"
+            End: true
         StartAt: controller
       Tracing:
         Enabled: true
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup: 
+              LogGroupArn:
+                Fn::ImportValue:
+                  !Sub "gratitude:${AWS::Region}:${ENV}:postUserCategoryWorkflowLogs:Arn"
+        IncludeExecutionData: true
+        Level: !FindInMap [ LoggingLevels, levels, Ref: ENV ]
       Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"
@@ -195,15 +316,38 @@ Resources:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:userCategoryExtractorControllerFunction:Arn"
-            Next: service
+            Next: errorHandler
           service:
             Type: Task
             Resource:
               Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:removeCategoryFunction:Arn"
             End: true
+          errorHandler:
+            Type: Choice
+            Choices:
+              - And:
+                - Variable: $.result.fail
+                  IsPresent: true
+                - Variable: $.result.fail
+                  BooleanEquals: true
+                Next: errState
+            Default: service
+          errState:
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"
+            End: true
         StartAt: controller
       Tracing:
         Enabled: true
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup: 
+              LogGroupArn:
+                Fn::ImportValue:
+                  !Sub "gratitude:${AWS::Region}:${ENV}:deleteUserCategoryWorkflowLogs:Arn"
+        IncludeExecutionData: true
+        Level: !FindInMap [ LoggingLevels, levels, Ref: ENV ]
       Type: EXPRESS
       Role:
         Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:workflowRole:Arn"

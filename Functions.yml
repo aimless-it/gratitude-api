@@ -30,8 +30,6 @@ Resources:
   LambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -65,6 +63,21 @@ Resources:
                     - db:
                         Fn::ImportValue:
                           !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy"
+        - PolicyName: VPCAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogsStream
+                  - logs:PutLogEvents
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                  - ec2:AssignPrivateIpAddresses
+                  - ec2:UnassignPrivateIpAddresses
+                Resource: '*'
 
     # BEGIN: Functions
   cognitoInsertTrigger:
@@ -224,6 +237,21 @@ Resources:
       Timeout: 5
       Tags:
         compliment: controller-username
+  errorHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A lambda for catching errors during runtime
+      FunctionName: errorHandlerFunction
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/gratitude-functions:${ENV}"
+      ImageConfig:
+        Command:
+          - index.handlers.errorHandlerFunction
+      MemorySize: 128
+      Tracing: Active
+      Timeout: 5
+      Tags:
+        compliment: errorHandlerFunction
   # END: Functions
 Outputs:
   cognitoInsertTriggerArn:
@@ -276,3 +304,8 @@ Outputs:
     Description: The ARN of the usernameExtractorControllerFunction function
     Export:
       Name: !Sub "gratitude:${AWS::Region}:${ENV}:usernameExtractorControllerFunction:Arn"
+  errorHanlderFunctionArn:
+    Value: !GetAtt errorHandlerFunction.Arn
+    Description: The ARN of the errorHandlerFunction function
+    Export:
+      Name: !Sub "gratitude:${AWS::Region}:${ENV}:errorHandlerFunction:Arn"
