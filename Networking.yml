@@ -20,17 +20,22 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref complimentVpc
-  # RouteTableGatewayAssociation:
-  #   Type: AWS::EC2::GatewayRouteTableAssociation
-  #   Properties:
-  #     GatewayId: !Ref complimentGateway
-  #     RouteTableId: !Ref complimentRouteTable
+  privRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref complimentVpc
   internetRoute:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       RouteTableId: !Ref complimentRouteTable
       GatewayId: !Ref complimentGateway
+  privNatRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref privRouteTable
+      NatGatewayId: !Ref natGateway
   complimentVpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -62,7 +67,7 @@ Resources:
           - b
       VpcId: !Ref complimentVpc
       CidrBlock: 10.0.2.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: compliment
           Value: subnet-2
@@ -75,7 +80,7 @@ Resources:
           - c
       VpcId: !Ref complimentVpc
       CidrBlock: 10.0.3.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: compliment
           Value: subnet-3
@@ -88,12 +93,22 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref sub2
-      RouteTableId: !Ref complimentRouteTable
+      RouteTableId: !Ref privRouteTable
   sub3RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref sub3
-      RouteTableId: !Ref complimentRouteTable
+      RouteTableId: !Ref privRouteTable
+  natGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref sub1
+      ConnectivityType: public
+      AllocationId: !GetAtt NatIP.AllocationId 
+  NatIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
   RDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
