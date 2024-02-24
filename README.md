@@ -25,12 +25,21 @@
     - For subsequent deployments, run `npm run sam:deploy` to deploy the application according sam's configuration file.
 4. Run the init.sql script from the bastion server.
     - Gather the ip address of the bastion and have the ssh key ready.
-    - Open the `scripts/
+    - Open the `scripts/sql-init.sh` file in a text editor.
+        - Replace all instances of `<key-path>` with the absolute file path to the ssh key.
+        - Replace all instances of `<bastion-ip>` with the public ip address of the bastion host.
+        - Replace all instances of `<rds-host>` with the domain of the rds instance.
+            > The RDS will not be publicly accessible and can only be operated on via the bastion host.
+    - Prepare the password for the `db_user` rds instance user from Secrets Manager.
+    - Run the script. It should prompt you first for the `db_user` password, then for the `app_user` password.
+        - The `app_user` password is just `app_password` and is mentioned in the init.sql script.
 
 ## Usage
 You will need to be a user in the Cognito user pool to gather an authentication token to make http requests to the API Gateway.
-1. Open your terminal and run `aws cognito-idp sign-up --client-id <client id> --username <username> --password <password [capital and number are required]> --user-attributes Name=email,Value=<some email>`
-2. Open your terminal and run `aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH --client-id <client id found in the app client page> --auth-parameters USERNAME=<username>,PASSWORD=<password> [>> token.json]`
+1. Open your terminal and run `aws cognito-idp sign-up --client-id <client id> --username <username> --password <password> --user-attributes Name=email,Value=<some email>`
+    - Gather the client-id from the cognito user pool page in the app integration settings.
+    - It should now say that the user is unconfirmed. Navigate to the new user in the cognito ui and confirm the user manually.
+2. Open your terminal and run `aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH --client-id <client-id> --auth-parameters USERNAME=<username>,PASSWORD=<password> [>> token.json]`
 3. Use the id token in the response in the Authorization header of your requests.
 
 ## Reference Architecture
