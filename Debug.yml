@@ -25,7 +25,7 @@ Resources:
       UserData: !Base64 |
         #!/bin/bash
         sudo yum update -y
-        sudo yum install postgresql
+        sudo yum install postgresql -y
   # END: Debugging
 Outputs:
   bastionAddress:

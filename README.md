@@ -1,25 +1,5 @@
 # Gratitude Serverless Back End
 
-## TODO:
-- [X] Create API
-- [X] Create State Machine
-- [ ] Create Kinesis Stream
-- [ ] Create Lambda for Stream
-- [X] Create openapi doc for api
-- [X] iam roles for lambda where necessary
-- [X] extract template for nesting and modularization
-- [X] Create userpool sms verification
-- [X] Create userpool api key
-- [X] Finish configuring app user pool
-- [X] Connect cognito to api for auth
-- [X] Create RDS Lambda proxy for functions to interact with db
-
-## TODO: future
-- [ ] Create buildspec.yml for ci/cd
-- [X] Create tests for lambdas
-- [X] fully configure xray
-- [ ] Route53 for domain and https
-
 ## Environment configuration
 - Need a key pair for bastion host connection named gratitude-bastion
 
@@ -34,8 +14,18 @@
  > The init sql file is located under the sql directory. copy it to the bastion host and run `psql -h <rds dns> -d postgres -U db_user -f init.sql`. You will need to input the password credentials for the rds user. These credentials are stored inside AWS Parameter Store Secrets Manager. Open this service in the aws console, copy the password, and paste the password into the console.
 
 ## Deploying
-- For initial deployments, run `npm run sam:deploy:inital`. This will walk you through options for deployment and create a configuration file for later deployments.
-- For susbequent deployments, run `npm run sam:deploy` to deploy the application according sam's configuration file.
+1. The lambdas are containerized. Without a CI/CD system, you'll need to package and deploy the container manually.
+    - Create the ECR registry in AWS. Use the repository name: `gratitude-functions`, else you'll need to change the registry name in the `scripts/docker-push.sh` file.
+    - Open the `scripts/docker-push.sh` in a text editor
+    - Replace all instances of `<acc#>` with your account number
+    - Save and run the script to deploy the containerized application.
+2. In AWS, create a key pair for the bastion server. Name the key-pair `bastion` to match the deployment manifest.
+3. Run the deployment script using npm.
+    - For initial deployments, run `npm run sam:deploy:initial`. This will walk you through options for deployment and create a configuration file for later deployments.
+    - For subsequent deployments, run `npm run sam:deploy` to deploy the application according sam's configuration file.
+4. Run the init.sql script from the bastion server.
+    - Gather the ip address of the bastion and have the ssh key ready.
+    - Open the `scripts/
 
 ## Usage
 You will need to be a user in the Cognito user pool to gather an authentication token to make http requests to the API Gateway.
@@ -43,5 +33,5 @@ You will need to be a user in the Cognito user pool to gather an authentication 
 2. Open your terminal and run `aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH --client-id <client id found in the app client page> --auth-parameters USERNAME=<username>,PASSWORD=<password> [>> token.json]`
 3. Use the id token in the response in the Authorization header of your requests.
 
-## Data
-https://docs.google.com/spreadsheets/d/1ZEz53npuQDqVRIo7iifksjLvF9epO2nHIVr-Fp3b_ww/edit?usp=sharing
+## Reference Architecture
+![Design Image](design/architecture.png)

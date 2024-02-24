@@ -113,7 +113,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: A group of subnets for the rds to reside in
-      DBSubnetGroupName: !Sub "${AWS::Region}:${ENV}:Sub-RDS"
+      DBSubnetGroupName: !Sub "${AWS::Region}_${ENV}_Sub-RDS"
       SubnetIds:
         - !Ref sub2
         - !Ref sub3

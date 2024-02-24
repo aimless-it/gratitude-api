@@ -10,11 +10,6 @@ Globals:
   Function:
     Environment:
       Variables:
-          # "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-          # "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-          # "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-          # "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-          # "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
           "PGUSER": "db_user"
           "PGHOST": 
             Fn::ImportValue: !Sub "gratitude:${AWS::Region}:${ENV}:DBProxy:Endpoint"

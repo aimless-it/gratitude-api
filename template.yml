@@ -3,28 +3,6 @@ Description: Complete Backend for Compliment API
 Transform:
 - AWS::Serverless-2016-10-31
 
-# Globals:
-#   Function:
-#     Runtime: nodejs14.x
-#     Environment:
-#       Variables:
-#           # "PGUSER": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::username}}'
-#           # "PGHOST": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::address}}'
-#           # "PGPASSWORD": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::password}}'
-#           # "PGDATABASE": !Sub '{{resolve:secretsmanager:${secretDBAppInfo}::database}}'
-#           # "PGPORT": !Sub '{{resolve:secretsmanager:${secretDBEndpoint}::port}}'
-#           "PGUSER": "app_user"
-#           "PGHOST": !GetAtt complimentRDS.Endpoint.Address
-#           "PGPORT": !GetAtt complimentRDS.Endpoint.Address
-#           "PGPASSWORD": "password"
-#           "PGDATABASE": "compliments"
-#     VpcConfig:
-#         SecurityGroupIds:
-#           - !Ref publicGroup
-#         SubnetIds:
-#           - !Ref sub1
-# Metadata:
-
 Parameters:
   ENV:
     Default: dev
